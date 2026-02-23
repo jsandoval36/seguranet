@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SeguraNet | Login</title>
+  <link rel="stylesheet" href="index.css" />
+</head>
+
+<body>
+  <main class="page">
+    <section class="card">
+      <!-- LOGO -->
+      <div class="brand">
+        <!-- Option A: use an image logo file (recommended) -->
+        <img class="logo" src="seguranet-logo.png" alt="SeguraNet Logo" />
+        <p class="tagline">Secure Online Information Management</p>
+      </div>
+
+      <form class="form" action="login.php" method="post">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="••••••••" required />
+        </div>
+
+        <div class="row">
+          <label class="remember">
+            <input type="checkbox" name="remember" />
+            <span>Remember me</span>
+          </label>
+
+          <a class="link" href="#">Forgot password?</a>
+        </div>
+
+        <button class="btn" type="submit">Log in</button>
+
+        <p class="signup">
+          Don’t have an account?
+          <a class="link" href="#">Create one</a>
+        </p>
+
+        <p class="footer">© 2026 SeguraNet</p>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
