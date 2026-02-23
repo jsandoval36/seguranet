@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> SeguraNet | Create Account</title>
+    <link rel="stylesheet" href="CreateAccount.css">
+</head>
+<body>
+   <div class="container">
+    <h2>Create an Account</h2>
+
+    <form action="/signup" method="POST">
+        <input type="text" name="username" placeholder="Username" requiered>
+        <input type="email" name="email" placeholder="Email" requiered>
+        <input type="password" name="password" placeholder="Password" requiered>
+        <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
+
+        <button type="submit">Create Account</button>
+    </form>
+
+    <p>Already hace an account? <a href="index.html">Login</a></p>
+   </div>
+
+   <!-- <script>
+    const form = document.querySelector("form");
+  
+    form.addEventListener("submit", (e) => {
+      const password = form.password.value;
+      const confirm = form.confirmPassword.value;
+  
+      if (password !== confirm) {
+        e.preventDefault();
+        alert("Passwords do not match!");
+      }
+    });
+  </script> -->
+
+</body>
+</html>
