@@ -3,5 +3,7 @@ session_start();
 session_unset();
 session_destroy();
 
-header("Location: index.html");
+// redirect to login page
+header("Location: login.html");
 exit();
+?>
