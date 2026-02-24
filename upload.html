@@ -1,4 +1,3 @@
-<!-- public/upload.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,7 +89,8 @@ button:hover{ transform:scale(1.02); }
     <h1>Upload your files</h1>
     <div class="subtitle">fast and easy way</div>
 
-    <form action="/upload" method="POST" enctype="multipart/form-data">
+    <!-- IMPORTANT: posts to Upload.php -->
+    <form action="Upload.php" method="POST" enctype="multipart/form-data">
       <label class="drop-area" id="dropArea">
         <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" alt="Upload Icon" />
         <span>Drag and drop files here (or click)</span>
