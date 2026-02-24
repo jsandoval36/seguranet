@@ -1,30 +1,96 @@
 <?php
-// view.php
-
-$uploadDir = __DIR__ . DIRECTORY_SEPARATOR . "uploads";
+$uploadDir = __DIR__ . "/uploads";
 
 if (!isset($_GET["file"])) {
-  http_response_code(400);
-  exit("Missing file parameter.");
+  exit("No file specified.");
 }
 
-$file = basename($_GET["file"]); // prevents path traversal
-$path = $uploadDir . DIRECTORY_SEPARATOR . $file;
+$file = basename($_GET["file"]);
+$path = $uploadDir . "/" . $file;
 
 if (!file_exists($path)) {
-  http_response_code(404);
   exit("File not found.");
 }
 
-// Detect MIME type
-$finfo = finfo_open(FILEINFO_MIME_TYPE);
-$mime = finfo_file($finfo, $path);
-finfo_close($finfo);
+$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
-// Send file
-header("Content-Type: " . $mime);
-header('Content-Disposition: inline; filename="' . $file . '"');
-header("Content-Length: " . filesize($path));
+// file URL
+$fileUrl = "uploads/" . urlencode($file);
+?>
 
-readfile($path);
-exit;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>View File</title>
+<style>
+body{
+  margin:0;
+  background:#0b0d10;
+  color:white;
+  font-family:Segoe UI, sans-serif;
+  text-align:center;
+}
+
+.topbar{
+  background:#111;
+  padding:12px;
+}
+
+.topbar a{
+  color:white;
+  text-decoration:none;
+  margin:0 10px;
+  font-weight:600;
+}
+
+.viewer{
+  padding:20px;
+}
+
+img, video{
+  max-width:90%;
+  max-height:80vh;
+  border-radius:10px;
+}
+
+iframe{
+  width:90%;
+  height:80vh;
+  border:none;
+  border-radius:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="dashboard.php">⬅ Back to Dashboard</a>
+  |
+  <a href="<?php echo $fileUrl; ?>" download>⬇ Download</a>
+</div>
+
+<div class="viewer">
+
+<?php
+// show preview based on file type
+
+if (in_array($ext, ["jpg","jpeg","png","gif","webp"])) {
+  echo "<img src='$fileUrl'>";
+}
+elseif (in_array($ext, ["mp4","mov","webm"])) {
+  echo "<video controls src='$fileUrl'></video>";
+}
+elseif ($ext === "pdf") {
+  echo "<iframe src='$fileUrl'></iframe>";
+}
+else {
+  echo "<p>Preview not available.</p>";
+  echo "<p><a href='$fileUrl' download>Download File</a></p>";
+}
+?>
+
+</div>
+
+</body>
+</html>
