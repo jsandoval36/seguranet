@@ -1,26 +1,30 @@
 <?php
-session_start();
-if (!isset($_SESSION["user_id"])) {
-  header("Location: index.html");
-  exit();
+// view.php
+
+$uploadDir = __DIR__ . DIRECTORY_SEPARATOR . "uploads";
+
+if (!isset($_GET["file"])) {
+  http_response_code(400);
+  exit("Missing file parameter.");
 }
 
-$allowed = [
-  "Resume.pdf" => "application/pdf",
-  "Photo.jpg"  => "image/jpeg",
-  "Video.mov"  => "video/quicktime"
-];
+$file = basename($_GET["file"]); // prevents path traversal
+$path = $uploadDir . DIRECTORY_SEPARATOR . $file;
 
-$file = $_GET["file"] ?? "";
-$file = basename($file);
-
-$path = __DIR__ . "/private_uploads/" . $file;
-
-if (!isset($allowed[$file]) || !file_exists($path)) {
-  exit("File not found");
+if (!file_exists($path)) {
+  http_response_code(404);
+  exit("File not found.");
 }
 
-header("Content-Type: " . $allowed[$file]);
+// Detect MIME type
+$finfo = finfo_open(FILEINFO_MIME_TYPE);
+$mime = finfo_file($finfo, $path);
+finfo_close($finfo);
+
+// Send file
+header("Content-Type: " . $mime);
 header('Content-Disposition: inline; filename="' . $file . '"');
+header("Content-Length: " . filesize($path));
+
 readfile($path);
-exit();
+exit;

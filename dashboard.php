@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_id"])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SeguraNet | Dashboard</title>
-  <link href = "seguraNet-icon.png" rel="icon" type="image/x-icon">
+  <link href="seguraNet-icon.png" rel="icon" type="image/x-icon">
   <link rel="stylesheet" href="dashboard.css" />
 </head>
 
@@ -50,7 +50,8 @@ if (!isset($_SESSION["user_id"])) {
         </div>
 
         <div class="top-actions">
-          <button class="btn" onclick="window.location.href='Upload.html'">Upload</button>
+          <!-- IMPORTANT: upload.html is lowercase -->
+          <button class="btn" onclick="window.location.href='upload.html'">Upload</button>
           <button class="btn ghost">New folder</button>
         </div>
       </header>
@@ -61,7 +62,7 @@ if (!isset($_SESSION["user_id"])) {
         <div class="meta">Signed in as: <?php echo htmlspecialchars($_SESSION["email"] ?? "user"); ?></div>
       </div>
 
-      <!-- FILE TABLE -->
+      <!-- FILE TABLE (REAL UPLOADS) -->
       <section class="table">
         <div class="row head">
           <div>Name</div>
@@ -69,29 +70,58 @@ if (!isset($_SESSION["user_id"])) {
           <div class="right">Size</div>
         </div>
 
-        <div class="row">
-          <div class="namecell">📁 Camera Uploads</div>
-          <div>—</div>
-          <div class="right">406.66 MB</div>
-        </div>
+        <?php
+          $uploadDir = __DIR__ . "/uploads";
 
-        <div class="row">
-          <div class="namecell">📄 Resume.pdf</div>
-          <div>10/12/2024</div>
-          <div class="right">320 KB</div>
-        </div>
+          if (!is_dir($uploadDir)) {
+            echo '<div class="row"><div class="namecell">⚠ uploads folder not found</div><div>—</div><div class="right">—</div></div>';
+          } else {
+            $files = array_diff(scandir($uploadDir), ['.', '..', '.gitkeep']);
 
-        <div class="row">
-          <div class="namecell">🖼️ Photo.jpg</div>
-          <div>12/28/2023</div>
-          <div class="right">3.36 MB</div>
-        </div>
+            // show newest first (your uploaded names are unique, so this works well)
+            rsort($files);
 
-        <div class="row">
-          <div class="namecell">🎞️ Video.mov</div>
-          <div>12/28/2023</div>
-          <div class="right">39.52 MB</div>
-        </div>
+            if (count($files) === 0) {
+              echo '<div class="row"><div class="namecell">No uploads yet</div><div>—</div><div class="right">—</div></div>';
+            } else {
+              foreach ($files as $file) {
+                $path = $uploadDir . "/" . $file;
+                if (!is_file($path)) continue;
+
+                $date = date("m/d/Y", filemtime($path));
+
+                $bytes = filesize($path);
+                if ($bytes >= 1024 * 1024) {
+                  $sizeText = round($bytes / (1024 * 1024), 2) . " MB";
+                } else {
+                  $sizeText = round($bytes / 1024, 2) . " KB";
+                }
+
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                $icon = "📄";
+                if (in_array($ext, ["jpg","jpeg","png","gif","webp"])) $icon = "🖼️";
+                if (in_array($ext, ["mp4","mov","avi","mkv"])) $icon = "🎞️";
+                if ($ext === "pdf") $icon = "📄";
+                if (in_array($ext, ["zip","rar","7z"])) $icon = "🗜️";
+
+                $safeFile = htmlspecialchars($file);
+                $viewLink = "view.php?file=" . urlencode($file);
+
+                echo '
+                  <div class="row">
+                    <div class="namecell">
+                      <a href="'.$viewLink.'" target="_blank" style="color:inherit; text-decoration:none;">
+                        '.$icon.' '.$safeFile.'
+                      </a>
+                    </div>
+                    <div>'.$date.'</div>
+                    <div class="right">'.$sizeText.'</div>
+                  </div>
+                ';
+              }
+            }
+          }
+        ?>
       </section>
 
     </main>
