@@ -1,7 +1,7 @@
 {
   "name": "seguranet",
   "version": "1.0.0",
-  "main": "upload.js",
+  "main": "Upload.js",
   "scripts": {
     "start": "node upload.js"
   },
