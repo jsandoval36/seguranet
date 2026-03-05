@@ -33,20 +33,17 @@ body {
 }
 
 .mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #2f80ed, #2ecc71);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
+width: 32px;
+height: 32px;
+display: flex;
+align-items: center;
+justify-content: center;
+overflow: hidden;
 }
 
- .mark img{
-  max-width: 26px;
-  max-height: 26px;
-  object-fit: contain;
-
+.mark img{
+width: 100%;
+height: auto;
 }
 
 .name { font-weight: 800; }
