@@ -12,11 +12,13 @@ if (isset($_GET["file"])) {
   $path = __DIR__ . "/uploads/" . $file;
 
   if (file_exists($path)) {
-    unlink($path);
+      unlink($path); // deletes only this file
   }
+
 }
 
 header("Location: dashboard.php");
 exit();
 ?>
+
 
