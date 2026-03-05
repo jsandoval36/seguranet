@@ -1,3 +1,4 @@
+```php
 <?php
 $uploadDir = __DIR__ . "/uploads";
 
@@ -13,8 +14,6 @@ if (!file_exists($path)) {
 }
 
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-
-// file URL
 $fileUrl = "uploads/" . urlencode($file);
 ?>
 
@@ -23,7 +22,9 @@ $fileUrl = "uploads/" . urlencode($file);
 <head>
 <meta charset="UTF-8">
 <title>View File</title>
+
 <style>
+
 body{
   margin:0;
   background:#0b0d10;
@@ -32,6 +33,7 @@ body{
   text-align:center;
 }
 
+/* Top bar */
 .topbar{
   background:#111;
   padding:12px;
@@ -44,24 +46,37 @@ body{
   font-weight:600;
 }
 
+/* Viewer container */
 .viewer{
   padding:20px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height: calc(100vh - 60px);
 }
 
+/* Images & videos */
 img, video{
-  max-width:90%;
-  max-height:80vh;
+  width:auto;
+  height:auto;
+  max-width:92vw;
+  max-height:82vh;
   border-radius:10px;
+  display:block;
+  margin:auto;
 }
 
+/* PDFs */
 iframe{
-  width:90%;
-  height:80vh;
+  width:92vw;
+  height:82vh;
   border:none;
   border-radius:10px;
 }
+
 </style>
 </head>
+
 <body>
 
 <div class="topbar">
@@ -73,24 +88,20 @@ iframe{
 <div class="viewer">
 
 <?php
-// show preview based on file type
 
 if (in_array($ext, ["jpg","jpeg","png","gif","webp"])) {
+
   echo "<img src='$fileUrl'>";
+
 }
+
 elseif (in_array($ext, ["mp4","mov","webm"])) {
+
   echo "<video controls src='$fileUrl'></video>";
+
 }
+
 elseif ($ext === "pdf") {
-  echo "<iframe src='$fileUrl'></iframe>";
-}
-else {
-  echo "<p>Preview not available.</p>";
-  echo "<p><a href='$fileUrl' download>Download File</a></p>";
-}
-?>
 
-</div>
-
-</body>
-</html>
+  e
+```
