@@ -3,19 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link href = "seguraNet-icon.png" rel="icon" type="image/x-icon">
+<link href="seguraNet-icon.png" rel="icon" type="image/x-icon">
 <title>SeguraNet | File Upload</title>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:'Segoe UI', sans-serif;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', sans-serif;}
 body{
   height:100vh;
-  background: 
+  background:
     radial-gradient(900px 500px at 20% 10%, rgba(47,128,237,.15), transparent 60%),
     radial-gradient(900px 500px at 80% 90%, rgba(46,204,113,.12), transparent 60%),
     linear-gradient(180deg, #f8fafc, #eef2f7);
@@ -85,6 +80,15 @@ button{
   transition:0.3s;
 }
 button:hover{ transform:scale(1.02); }
+
+.back{
+  display:inline-block;
+  margin-top:16px;
+  color:#2f346f;
+  text-decoration:none;
+  font-weight:600;
+}
+.back:hover{ text-decoration:underline; }
 </style>
 </head>
 
@@ -93,18 +97,22 @@ button:hover{ transform:scale(1.02); }
     <h1>Upload your files</h1>
     <div class="subtitle">fast and easy way</div>
 
-    <!-- IMPORTANT: posts to Upload.php -->
-    <form action="Upload.php" method="POST" enctype="multipart/form-data">
+    <!-- IMPORTANT: posts to upload.php -->
+    <form action="upload.php" method="POST" enctype="multipart/form-data">
       <label class="drop-area" id="dropArea">
         <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" alt="Upload Icon" />
         <span>Drag and drop files here (or click)</span>
-        <input type="file" name="file" id="fileInput" required />
+
+        <!-- Allows image/video/pdf -->
+        <input type="file" name="file" id="fileInput" accept="image/*,video/*,.pdf" required />
       </label>
 
       <div class="file-name" id="fileName">No file selected</div>
 
       <button type="submit">Submit</button>
     </form>
+
+    <a class="back" href="dashboard.php">⬅ Back to Dashboard</a>
   </div>
 
 <script>
@@ -121,7 +129,6 @@ function showFileName() {
 
 fileInput.addEventListener("change", showFileName);
 
-// Drag & drop
 dropArea.addEventListener("dragover", (e) => {
   e.preventDefault();
   dropArea.classList.add("dragover");
