@@ -43,29 +43,27 @@ function isVideoExt($ext) {
 <!-- SIDEBAR -->
 <aside class="sidebar">
 
-<div class="brand">
+  <div class="brand">
+    <div class="mark">
+      <img src="seguranet-icon-small.png" alt="SeguraNet" style="width:24px;height:24px;object-fit:contain;display:block;">
+    </div>
 
-<div class="mark">
-<img src="seguranet-icon-small.png" alt="SeguraNet" style="width:24px;height:24px;object-fit:contain;display:block;">
-</div>
+    <div>
+      <div class="name">SeguraNet</div>
+      <div class="sub">Secure files</div>
+    </div>
+  </div>
 
-<div>
-<div class="name">SeguraNet</div>
-<div class="sub">Secure files</div>
-</div>
+  <nav class="nav">
+    <a class="<?= active('all',$filter) ?>" href="dashboard.php?filter=all">All files</a>
+    <a class="<?= active('photos',$filter) ?>" href="dashboard.php?filter=photos">Photos</a>
+    <a class="<?= active('shared',$filter) ?>" href="dashboard.php?filter=shared">Shared</a>
+    <a class="<?= active('deleted',$filter) ?>" href="dashboard.php?filter=deleted">Deleted</a>
+  </nav>
 
-</div>
-
-<nav class="nav">
-<a class="<?= active('all',$filter) ?>" href="dashboard.php?filter=all">All files</a>
-<a class="<?= active('photos',$filter) ?>" href="dashboard.php?filter=photos">Photos</a>
-<a class="<?= active('shared',$filter) ?>" href="dashboard.php?filter=shared">Shared</a>
-<a class="<?= active('deleted',$filter) ?>" href="dashboard.php?filter=deleted">Deleted</a>
-</nav>
-
-<div class="sidebar-footer">
-<a class="logout" href="logout.php">Log out</a>
-</div>
+  <div class="sidebar-footer">
+    <a class="logout" href="logout.php">Log out</a>
+  </div>
 
 </aside>
 
@@ -75,33 +73,33 @@ function isVideoExt($ext) {
 
 <header class="topbar">
 
-<div class="search">
-<input id="searchBox" type="text" placeholder="Search files...">
-</div>
+  <div class="search">
+    <input id="searchBox" type="text" placeholder="Search files...">
+  </div>
 
-<div class="top-actions">
-<button class="btn" onclick="window.location.href='upload.html'">Upload</button>
-<button class="btn ghost">New folder</button>
-</div>
+  <div class="top-actions">
+    <button class="btn" onclick="window.location.href='upload.html'">Upload</button>
+    <button class="btn ghost">New folder</button>
+  </div>
 
 </header>
 
 
 <div class="title-row">
-<h1><?= htmlspecialchars(pageTitle($filter)) ?></h1>
-<div class="meta">
-Signed in as: <?= htmlspecialchars($_SESSION["email"] ?? "user"); ?>
-</div>
+  <h1><?= htmlspecialchars(pageTitle($filter)) ?></h1>
+  <div class="meta">
+    Signed in as: <?= htmlspecialchars($_SESSION["email"] ?? "user"); ?>
+  </div>
 </div>
 
 
 <section class="table">
 
-<div class="row head">
-<div>Name</div>
-<div>Last modified</div>
-<div class="right">Size</div>
-</div>
+  <div class="row head">
+    <div>Name</div>
+    <div>Last modified</div>
+    <div class="right">Size</div>
+  </div>
 
 
 <?php
@@ -110,111 +108,95 @@ $uploadDir = __DIR__ . "/uploads";
 
 if (!is_dir($uploadDir)) {
 
-echo '<div class="row">
-<div class="namecell">⚠ uploads folder not found</div>
-<div>—</div>
-<div class="right">—</div>
-</div>';
+  echo '<div class="row">
+    <div class="namecell">⚠ uploads folder not found</div>
+    <div>—</div>
+    <div class="right">—</div>
+  </div>';
 
 } else {
 
-$files = array_diff(scandir($uploadDir), ['.','..','.gitkeep']);
-rsort($files);
+  $files = array_diff(scandir($uploadDir), ['.','..','.gitkeep']);
+  rsort($files);
 
-$filteredFiles = [];
+  $filteredFiles = [];
 
-foreach ($files as $file) {
+  foreach ($files as $file) {
 
-$path = $uploadDir . "/" . $file;
+    $path = $uploadDir . "/" . $file;
 
-if (!is_file($path)) continue;
+    if (!is_file($path)) continue;
 
-$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
-if ($filter === "photos") {
-if (!isPhotoExt($ext)) continue;
-}
+    if ($filter === "photos") {
+      if (!isPhotoExt($ext)) continue;
+    }
+    elseif ($filter === "shared") {
+      if (stripos($file,"shared_") !== 0) continue;
+    }
+    elseif ($filter === "deleted") {
+      if (stripos($file,"deleted_") !== 0) continue;
+    }
 
-elseif ($filter === "shared") {
-if (stripos($file,"shared_") !== 0) continue;
-}
+    $filteredFiles[] = $file;
+  }
 
-elseif ($filter === "deleted") {
-if (stripos($file,"deleted_") !== 0) continue;
-}
+  if (count($filteredFiles) === 0) {
 
-$filteredFiles[] = $file;
+    echo '<div class="row">
+      <div class="namecell">No files found</div>
+      <div>—</div>
+      <div class="right">—</div>
+    </div>';
 
-}
+  } else {
 
-if (count($filteredFiles) === 0) {
+    foreach ($filteredFiles as $file) {
 
-echo '<div class="row">
-<div class="namecell">No files found</div>
-<div>—</div>
-<div class="right">—</div>
-</div>';
+      $path = $uploadDir . "/" . $file;
 
-} else {
+      $date = date("m/d/Y", filemtime($path));
 
-foreach ($filteredFiles as $file) {
+      $bytes = filesize($path);
 
-$path = $uploadDir . "/" . $file;
+      if ($bytes >= 1024*1024) {
+        $sizeText = round($bytes/(1024*1024),2)." MB";
+      } else {
+        $sizeText = round($bytes/1024,2)." KB";
+      }
 
-$date = date("m/d/Y", filemtime($path));
+      $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
-$bytes = filesize($path);
+      $icon = "📄";
+      if (isPhotoExt($ext)) $icon="🖼️";
+      if (isVideoExt($ext)) $icon="🎞️";
+      if ($ext==="pdf") $icon="📄";
+      if (in_array($ext,["zip","rar","7z"])) $icon="🗜️";
 
-if ($bytes >= 1024*1024) {
-$sizeText = round($bytes/(1024*1024),2)." MB";
-} else {
-$sizeText = round($bytes/1024,2)." KB";
-}
+      $badge = "";
+      if (stripos($file,"shared_")===0) $badge='<span class="badge shared">Shared</span>';
+      if (stripos($file,"deleted_")===0) $badge='<span class="badge deleted">Deleted</span>';
 
-$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+      $safeFile = htmlspecialchars($file);
+      $viewLink = "view.php?file=" . urlencode($file);
 
-$icon = "📄";
+      echo '
+      <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($file)).'">
 
-if (isPhotoExt($ext)) $icon="🖼️";
-if (isVideoExt($ext)) $icon="🎞️";
-if ($ext==="pdf") $icon="📄";
-if (in_array($ext,["zip","rar","7z"])) $icon="🗜️";
+        <div class="namecell">
+          <a href="'.$viewLink.'" style="color:inherit;text-decoration:none;">
+            '.$icon.' '.$safeFile.'
+          </a>
+          '.$badge.'
+        </div>
 
-$badge="";
+        <div>'.$date.'</div>
+        <div class="right">'.$sizeText.'</div>
 
-if (stripos($file,"shared_")===0)
-$badge='<span class="badge shared">Shared</span>';
-
-if (stripos($file,"deleted_")===0)
-$badge='<span class="badge deleted">Deleted</span>';
-
-$safeFile = htmlspecialchars($file);
-
-$viewLink = "view.php?file=".urlencode($file);
-
-echo '
-<div class="row fileRow" data-name="'.htmlspecialchars(strtolower($file)).'">
-
-<div class="namecell">
-
-<a href="'.$viewLink.'" target="_blank" style="color:inherit;text-decoration:none;">
-'.$icon.' '.$safeFile.'
-</a>
-
-'.$badge.'
-
-</div>
-
-<div>'.$date.'</div>
-
-<div class="right">'.$sizeText.'</div>
-
-</div>';
-
-}
-
-}
-
+      </div>';
+    }
+  }
 }
 
 ?>
@@ -227,27 +209,17 @@ echo '
 
 
 <script>
+const searchBox = document.getElementById("searchBox");
 
-const searchBox=document.getElementById("searchBox");
-
-if(searchBox){
-
-searchBox.addEventListener("input",()=>{
-
-const q=searchBox.value.toLowerCase().trim();
-
-document.querySelectorAll(".fileRow").forEach(row=>{
-
-const name=row.getAttribute("data-name")||"";
-
-row.style.display=name.includes(q)?"":"none";
-
-});
-
-});
-
+if (searchBox) {
+  searchBox.addEventListener("input", () => {
+    const q = searchBox.value.toLowerCase().trim();
+    document.querySelectorAll(".fileRow").forEach(row => {
+      const name = row.getAttribute("data-name") || "";
+      row.style.display = name.includes(q) ? "" : "none";
+    });
+  });
 }
-
 </script>
 
 </body>
