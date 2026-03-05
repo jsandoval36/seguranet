@@ -178,3 +178,17 @@ height:auto;
 }
 .badge.shared{ background: rgba(47,128,237,.18); }
 .badge.deleted{ background: rgba(255,80,80,.18); }
+
+/*----Delete button*/
+.delete-btn{
+  background:#ff4d4d;
+  color:white;
+  padding:5px 12px;
+  border-radius:6px;
+  font-size:13px;
+  text-decoration:none;
+}
+
+.delete-btn:hover{
+  background:#cc0000;
+}
