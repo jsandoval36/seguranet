@@ -18,7 +18,6 @@ function pageTitle($filter) {
   return "All files";
 }
 
-// file extension rules
 function isPhotoExt($ext) {
   return in_array($ext, ["jpg","jpeg","png","gif","webp"]);
 }
@@ -43,8 +42,10 @@ function isVideoExt($ext) {
     <!-- LEFT SIDEBAR -->
     <aside class="sidebar">
       <div class="brand">
-        <!-- LOGO (add this file in your root if you want) -->
-        <img src="seguranet-logo.png" alt="SeguraNet" class="brand-logo" onerror="this.style.display='none'">
+        <div class="mark">
+          <!-- put your logo file in the same folder as dashboard.php -->
+          <img src="seguranet-logo.png" alt="SeguraNet" onerror="this.style.display='none'">
+        </div>
         <div>
           <div class="name">SeguraNet</div>
           <div class="sub">Secure files</div>
@@ -81,10 +82,10 @@ function isVideoExt($ext) {
       <!-- TITLE -->
       <div class="title-row">
         <h1><?= htmlspecialchars(pageTitle($filter)) ?></h1>
-        <div class="meta">Signed in as: <?php echo htmlspecialchars($_SESSION["email"] ?? "user"); ?></div>
+        <div class="meta">Signed in as: <?= htmlspecialchars($_SESSION["email"] ?? "user"); ?></div>
       </div>
 
-      <!-- FILE TABLE (REAL UPLOADS) -->
+      <!-- FILE TABLE -->
       <section class="table">
         <div class="row head">
           <div>Name</div>
@@ -101,7 +102,9 @@ function isVideoExt($ext) {
             $files = array_diff(scandir($uploadDir), ['.', '..', '.gitkeep']);
             rsort($files);
 
-            // FILTERING
+            // Apply filters (no DB version):
+            // Shared = filename starts with "shared_"
+            // Deleted = filename starts with "deleted_"
             $filteredFiles = [];
             foreach ($files as $file) {
               $path = $uploadDir . "/" . $file;
@@ -112,12 +115,8 @@ function isVideoExt($ext) {
               if ($filter === "photos") {
                 if (!isPhotoExt($ext)) continue;
               } elseif ($filter === "shared") {
-                // No DB yet: you can treat files starting with "shared_" as shared
-                // Example: shared_report.pdf
                 if (stripos($file, "shared_") !== 0) continue;
               } elseif ($filter === "deleted") {
-                // No DB yet: treat files starting with "deleted_" as deleted
-                // Example: deleted_old.png
                 if (stripos($file, "deleted_") !== 0) continue;
               }
 
@@ -146,6 +145,10 @@ function isVideoExt($ext) {
                 if ($ext === "pdf") $icon = "📄";
                 if (in_array($ext, ["zip","rar","7z"])) $icon = "🗜️";
 
+                $badge = "";
+                if (stripos($file, "shared_") === 0) $badge = '<span class="badge shared">Shared</span>';
+                if (stripos($file, "deleted_") === 0) $badge = '<span class="badge deleted">Deleted</span>';
+
                 $safeFile = htmlspecialchars($file);
                 $viewLink = "view.php?file=" . urlencode($file);
 
@@ -155,6 +158,7 @@ function isVideoExt($ext) {
                       <a href="'.$viewLink.'" target="_blank" style="color:inherit; text-decoration:none;">
                         '.$icon.' '.$safeFile.'
                       </a>
+                      '.$badge.'
                     </div>
                     <div>'.$date.'</div>
                     <div class="right">'.$sizeText.'</div>
@@ -169,7 +173,6 @@ function isVideoExt($ext) {
     </main>
   </div>
 
-  <!-- SIMPLE SEARCH (client-side) -->
   <script>
     const searchBox = document.getElementById("searchBox");
     if (searchBox) {
