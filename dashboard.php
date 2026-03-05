@@ -200,8 +200,10 @@ if (!is_dir($uploadDir)) {
 
         <div class="right">
         <a class="delete-btn"
-        href="delete.php?file='.urlencode($file).'"
-        onclick="return confirm(\'Are you sure you want to delete this file?\')">Delete</a>
+        href="delete.php?file=<?= urlencode($file) ?>"
+        onclick="return confirm('Delete this file?')">
+        Delete
+        </a>
         </div>
       </div>';
     }
