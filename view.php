@@ -1,20 +1,26 @@
-```php
 <?php
-$uploadDir = __DIR__ . "/uploads";
+session_start();
 
-if (!isset($_GET["file"])) {
+if (!isset($_SESSION["user_id"])) {
+  header("Location: index.html");
+  exit();
+}
+
+$uploadDir = __DIR__ . "/uploads/";
+
+if (!isset($_GET["file"]) || $_GET["file"] === "") {
   exit("No file specified.");
 }
 
 $file = basename($_GET["file"]);
-$path = $uploadDir . "/" . $file;
+$path = $uploadDir . $file;
 
 if (!file_exists($path)) {
   exit("File not found.");
 }
 
 $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-$fileUrl = "uploads/" . urlencode($file);
+$fileUrl = "uploads/" . rawurlencode($file);
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +39,6 @@ body{
   text-align:center;
 }
 
-/* Top bar */
 .topbar{
   background:#111;
   padding:12px;
@@ -46,7 +51,6 @@ body{
   font-weight:600;
 }
 
-/* Viewer container */
 .viewer{
   padding:20px;
   display:flex;
@@ -55,7 +59,6 @@ body{
   min-height: calc(100vh - 60px);
 }
 
-/* Images & videos */
 img, video{
   width:auto;
   height:auto;
@@ -66,7 +69,6 @@ img, video{
   margin:auto;
 }
 
-/* PDFs */
 iframe{
   width:92vw;
   height:82vh;
@@ -95,7 +97,7 @@ if (in_array($ext, ["jpg","jpeg","png","gif","webp"])) {
 
 }
 
-elseif (in_array($ext, ["mp4","mov","webm"])) {
+elseif (in_array($ext, ["mp4","mov","webm","mkv","avi"])) {
 
   echo "<video controls src='$fileUrl'></video>";
 
@@ -103,5 +105,19 @@ elseif (in_array($ext, ["mp4","mov","webm"])) {
 
 elseif ($ext === "pdf") {
 
-  e
-```
+  echo "<iframe src='$fileUrl'></iframe>";
+
+}
+
+else {
+
+  echo "<p>Preview not available for this file type.</p>";
+
+}
+
+?>
+
+</div>
+
+</body>
+</html>
