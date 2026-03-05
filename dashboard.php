@@ -46,7 +46,7 @@ function isVideoExt($ext) {
 <div class="brand">
 
 <div class="mark">
-<img src="seguranet-icon-small.png" alt="SeguraNet">
+<img src="seguranet-icon-small.png" alt="SeguraNet" style="width:24px;height:24px;object-fit:contain;display:block;">
 </div>
 
 <div>
