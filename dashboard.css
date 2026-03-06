@@ -33,17 +33,17 @@ body {
 }
 
 .mark{
-width:32px;
-height:32px;
-display:flex;
-align-items:center;
-justify-content:center;
-background:none;
+  width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:none;
 }
 
 .mark img{
-width:24px;
-height:auto;
+  width:24px;
+  height:auto;
 }
 
 .name { font-weight: 800; }
@@ -58,17 +58,20 @@ height:auto;
 }
 
 .nav a:hover { background: rgba(255,255,255,.05); }
+
 .nav a.active {
   background: rgba(47,128,237,.18);
   color: #fff;
 }
 
 .sidebar-footer { margin-top: auto; padding: 10px; }
+
 .logout {
   display: inline-block;
   color: rgba(255,255,255,.75);
   text-decoration: none;
 }
+
 .logout:hover { text-decoration: underline; }
 
 /* Main */
@@ -104,7 +107,10 @@ height:auto;
   box-shadow: 0 0 0 4px rgba(47,128,237,.12);
 }
 
-.top-actions { display: flex; gap: 10px; }
+.top-actions {
+  display: flex;
+  gap: 10px;
+}
 
 .btn {
   padding: 10px 12px;
@@ -121,7 +127,9 @@ height:auto;
   font-weight: 600;
 }
 
-.btn:hover { filter: brightness(1.03); }
+.btn:hover {
+  filter: brightness(1.03);
+}
 
 /* Title row */
 .title-row {
@@ -132,8 +140,15 @@ height:auto;
   gap: 12px;
 }
 
-.title-row h1 { margin: 0; font-size: 22px; }
-.meta { color: rgba(255,255,255,.65); font-size: 13px; }
+.title-row h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.meta {
+  color: rgba(255,255,255,.65);
+  font-size: 13px;
+}
 
 /* Table */
 .table {
@@ -146,12 +161,16 @@ height:auto;
 
 .row {
   display: grid;
-  grid-template-columns: 1.8fr 1fr .6fr;
+  grid-template-columns: 1.8fr 1fr 0.7fr 0.8fr;
+  align-items: center;
+  gap: 14px;
   padding: 12px 14px;
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
-.row:last-child { border-bottom: none; }
+.row:last-child {
+  border-bottom: none;
+}
 
 .row.head {
   background: rgba(255,255,255,.04);
@@ -159,10 +178,24 @@ height:auto;
   color: rgba(255,255,255,.85);
 }
 
-.row:hover { background: rgba(255,255,255,.05); }
+.row:hover {
+  background: rgba(255,255,255,.05);
+}
 
-.right { text-align: right; color: rgba(255,255,255,.75); }
-.namecell { font-weight: 600; }
+.right {
+  text-align: right;
+  color: rgba(255,255,255,.75);
+}
+
+.namecell {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  word-break: break-word;
+}
 
 /* Badges */
 .badge{
@@ -176,11 +209,16 @@ height:auto;
   color: rgba(255,255,255,.85);
   margin-left: 10px;
 }
-.badge.shared{ background: rgba(47,128,237,.18); }
-.badge.deleted{ background: rgba(255,80,80,.18); }
 
-/*----Delete button*/
+.badge.shared{
+  background: rgba(47,128,237,.18);
+}
 
+.badge.deleted{
+  background: rgba(255,80,80,.18);
+}
+
+/* Delete / Recover button */
 .delete-btn,
 .recover-btn{
   display:inline-block;
@@ -190,6 +228,7 @@ height:auto;
   font-size:13px;
   font-weight:600;
   text-align:center;
+  white-space: nowrap;
 }
 
 .delete-btn{
