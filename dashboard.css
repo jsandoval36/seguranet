@@ -49,19 +49,40 @@ body {
 .name { font-weight: 800; }
 .sub { font-size: 12px; color: rgba(255,255,255,.65); }
 
-.nav a {
-  display: block;
-  padding: 10px 12px;
-  border-radius: 10px;
-  color: rgba(255,255,255,.75);
-  text-decoration: none;
+.nav a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  padding:10px 14px;
+  border-radius:10px;
+
+  color:rgba(255,255,255,.75);
+  text-decoration:none;
+
+  position:relative;
+  transition:.2s;
 }
 
-.nav a:hover { background: rgba(255,255,255,.05); }
+.nav a:hover{
+  background:rgba(255,255,255,.05);
+  color:#fff;
+}
 
-.nav a.active {
-  background: rgba(47,128,237,.18);
-  color: #fff;
+.nav a.active{
+  background:rgba(47,128,237,.18);
+  color:#fff;
+}
+
+.nav a.active::before{
+  content:"";
+  position:absolute;
+  left:-14px;
+  top:6px;
+  bottom:6px;
+  width:4px;
+  border-radius:4px;
+  background:linear-gradient(#2f80ed,#2ecc71);
 }
 
 .sidebar-footer { margin-top: auto; padding: 10px; }
