@@ -1,43 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SeguraNet | HomePage</title>
-    <link href = "seguraNet-icon.png" rel="icon" type="image/x-icon">
-  <link rel="stylesheet" href="HomePage.css">
+  <link href="seguraNet-icon.png" rel="icon" type="image/x-icon" />
+  <link rel="stylesheet" href="HomePage.css" />
 </head>
 <body>
+
+  <!-- background glow -->
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
 
   <!-- NAVBAR -->
   <header class="navbar">
     <div class="logo">
-      <img src="seguranet-logo.png" alt="logo">
-      <!--<span>SeguraNet</span>-->
+      <img src="seguranet-logo.png" alt="SeguraNet logo" />
     </div>
 
     <div class="nav-links">
-      <a href="CreateAccount.html">Sign up</a>
-      <a href="login.html">Log in</a>
+      <a href="#features">Features</a>
+      <a href="CreateAccount.html" class="nav-btn signup-btn">Sign up</a>
+      <a href="login.html" class="nav-btn login-btn">Log in</a>
     </div>
   </header>
 
   <!-- HERO SECTION -->
   <section class="hero">
-    
     <div class="hero-left">
+      <div class="hero-badge">Secure • Simple • Modern</div>
       <h1>Welcome to SeguraNet</h1>
       <p>
         Everything your business needs to work efficiently,
-        all in one secure place.
+        all in one secure place. Upload, organize, and manage
+        your files with a clean and secure dashboard experience.
       </p>
-      <!--<button class="primary-btn">Get Started</button>-->
     </div>
 
     <div class="hero-right">
-      <img src="dashboard.png" alt="dashboard preview">
+      <div class="dashboard-frame">
+        <img src="dashboard.png" alt="SeguraNet dashboard preview" />
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section" id="features">
+    <div class="section-heading">
+      <h2>Why choose SeguraNet?</h2>
+      <p>
+        SeguraNet is designed to make file storage simple,
+        professional, and secure.
+      </p>
     </div>
 
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure Storage</h3>
+        <p>
+          Protect files with a secure system that helps keep access limited
+          to the right users.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Fast Access</h3>
+        <p>
+          Open, view, and manage your files quickly through a clean and
+          easy-to-use dashboard.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📁</div>
+        <h3>Better Organization</h3>
+        <p>
+          Keep documents, images, and videos organized in one place for a
+          smoother workflow.
+        </p>
+      </div>
+    </div>
   </section>
+
+  <!-- DEMO / INFO SECTION -->
+  <section class="demo-section">
+    <div class="demo-box">
+      <div class="demo-text">
+        <h2>A cleaner way to manage files</h2>
+        <p>
+          SeguraNet gives users a more professional way to upload and organize
+          important files while keeping the experience simple and modern.
+        </p>
+      </div>
+
+      <div class="demo-stats">
+        <div class="stat-card">
+          <h3>500MB</h3>
+          <p>Large upload support</p>
+        </div>
+        <div class="stat-card">
+          <h3>Secure</h3>
+          <p>Protected file access</p>
+        </div>
+        <div class="stat-card">
+          <h3>Modern</h3>
+          <p>Clean user interface</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2026 SeguraNet | Secure File Storage Platform</p>
+    <p>Built for the Georgia Gwinnett College TAP Project</p>
+  </footer>
 
 </body>
 </html>
