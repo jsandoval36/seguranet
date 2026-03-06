@@ -13,6 +13,8 @@ function active($name, $filter) {
 
 function pageTitle($filter) {
   if ($filter === "photos") return "Photos";
+  if ($filter === "videos") return "Videos";
+  if ($filter === "docs") return "Documents";
   if ($filter === "shared") return "Shared";
   if ($filter === "deleted") return "Deleted";
   return "All files";
@@ -23,7 +25,11 @@ function isPhotoExt($ext) {
 }
 
 function isVideoExt($ext) {
-  return in_array($ext, ["mp4","mov","avi","mkv"]);
+  return in_array($ext, ["mp4","mov","avi","mkv","webm"]);
+}
+
+function isDocExt($ext) {
+  return in_array($ext, ["pdf","doc","docx","txt","ppt","pptx","xls","xlsx","csv"]);
 }
 ?>
 <!DOCTYPE html>
@@ -35,61 +41,64 @@ function isVideoExt($ext) {
 <link href="seguraNet-icon.png" rel="icon">
 <link rel="stylesheet" href="dashboard.css">
 </head>
-
 <body>
 
 <div class="app">
 
-<aside class="sidebar">
-  <div class="brand">
-    <div class="mark">
-      <img src="seguranet-icon-small.png" alt="SeguraNet" style="width:24px;height:24px;object-fit:contain;display:block;">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">
+        <img src="seguranet-icon-small.png" alt="SeguraNet" style="width:24px;height:24px;object-fit:contain;display:block;">
+      </div>
+      <div>
+        <div class="name">SeguraNet</div>
+        <div class="sub">Secure files</div>
+      </div>
     </div>
 
-    <div>
-      <div class="name">SeguraNet</div>
-      <div class="sub">Secure files</div>
+    <nav class="nav">
+      <a class="<?= active('all',$filter) ?>" href="dashboard.php?filter=all">📁 All files</a>
+      <a class="<?= active('photos',$filter) ?>" href="dashboard.php?filter=photos">🖼 Photos</a>
+      <a class="<?= active('videos',$filter) ?>" href="dashboard.php?filter=videos">🎞 Videos</a>
+      <a class="<?= active('docs',$filter) ?>" href="dashboard.php?filter=docs">📄 Docs</a>
+      <a class="<?= active('shared',$filter) ?>" href="dashboard.php?filter=shared">🤝 Shared</a>
+      <a class="<?= active('deleted',$filter) ?>" href="dashboard.php?filter=deleted">🗑 Deleted</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="logout" href="logout.php">Log out</a>
     </div>
-  </div>
+  </aside>
 
-  <nav class="nav">
-    <a class="<?= active('all',$filter) ?>" href="dashboard.php?filter=all">All files</a>
-    <a class="<?= active('photos',$filter) ?>" href="dashboard.php?filter=photos">Photos</a>
-    <a class="<?= active('shared',$filter) ?>" href="dashboard.php?filter=shared">Shared</a>
-    <a class="<?= active('deleted',$filter) ?>" href="dashboard.php?filter=deleted">Deleted</a>
-  </nav>
+  <!-- MAIN -->
+  <main class="main">
 
-  <div class="sidebar-footer">
-    <a class="logout" href="logout.php">Log out</a>
-  </div>
-</aside>
+    <header class="topbar">
+      <div class="search">
+        <input id="searchBox" type="text" placeholder="Search files...">
+      </div>
 
-<main class="main">
+      <div class="top-actions">
+        <button class="btn" onclick="window.location.href='upload.php'">Upload</button>
+        <button class="btn ghost">New folder</button>
+      </div>
+    </header>
 
-<header class="topbar">
-  <div class="search">
-    <input id="searchBox" type="text" placeholder="Search files...">
-  </div>
+    <div class="title-row">
+      <h1><?= htmlspecialchars(pageTitle($filter)) ?></h1>
+      <div class="meta">
+        Signed in as: <?= htmlspecialchars($_SESSION["email"] ?? "user"); ?>
+      </div>
+    </div>
 
-  <div class="top-actions">
-    <button class="btn" onclick="window.location.href='upload.html'">Upload</button>
-    <button class="btn ghost">New folder</button>
-  </div>
-</header>
-
-<div class="title-row">
-  <h1><?= htmlspecialchars(pageTitle($filter)) ?></h1>
-  <div class="meta">
-    Signed in as: <?= htmlspecialchars($_SESSION["email"] ?? "user"); ?>
-  </div>
-</div>
-
-<section class="table">
-  <div class="row head">
-    <div>Name</div>
-    <div>Last modified</div>
-    <div class="right">Size</div>
-  </div>
+    <section class="table">
+      <div class="row head">
+        <div>Name</div>
+        <div>Last modified</div>
+        <div class="right">Size</div>
+        <div class="right">Action</div>
+      </div>
 
 <?php
 $uploadDir = __DIR__ . "/uploads";
@@ -99,6 +108,7 @@ if (!is_dir($uploadDir)) {
   echo '<div class="row">
     <div class="namecell">⚠ uploads folder not found</div>
     <div>—</div>
+    <div class="right">—</div>
     <div class="right">—</div>
   </div>';
 
@@ -118,6 +128,10 @@ if (!is_dir($uploadDir)) {
 
     if ($filter === "photos") {
       if (!isPhotoExt($ext)) continue;
+    } elseif ($filter === "videos") {
+      if (!isVideoExt($ext)) continue;
+    } elseif ($filter === "docs") {
+      if (!isDocExt($ext)) continue;
     } elseif ($filter === "shared") {
       if (stripos($file, "shared_") !== 0) continue;
     } elseif ($filter === "deleted") {
@@ -132,6 +146,7 @@ if (!is_dir($uploadDir)) {
     echo '<div class="row">
       <div class="namecell">No files found</div>
       <div>—</div>
+      <div class="right">—</div>
       <div class="right">—</div>
     </div>';
 
@@ -153,12 +168,12 @@ if (!is_dir($uploadDir)) {
       $icon = "📄";
       if (isPhotoExt($ext)) $icon = "🖼️";
       if (isVideoExt($ext)) $icon = "🎞️";
-      if ($ext === "pdf") $icon = "📄";
-      if (in_array($ext, ["zip", "rar", "7z"])) $icon = "🗜️";
+      if ($ext === "pdf") $icon = "📕";
+      if (in_array($ext, ["zip","rar","7z"])) $icon = "🗜️";
 
       $badge = "";
-      if (stripos($file, "shared_") === 0) $badge = '<span class="badge shared">Shared</span>';
-      if (stripos($file, "deleted_") === 0) $badge = '<span class="badge deleted">Deleted</span>';
+      if (stripos($file, "shared_") === 0) $badge = ' <span class="badge shared">Shared</span>';
+      if (stripos($file, "deleted_") === 0) $badge = ' <span class="badge deleted">Deleted</span>';
 
       $safeFile = htmlspecialchars($file);
       $viewLink = "view.php?file=" . urlencode($file);
@@ -169,19 +184,13 @@ if (!is_dir($uploadDir)) {
         <div class="namecell">
           <a href="'.$viewLink.'" style="color:inherit;text-decoration:none;">
             '.$icon.' '.$safeFile.'
-          </a>
-          '.$badge.'
+          </a>'.$badge.'
         </div>
 
         <div>'.$date.'</div>
         <div class="right">'.$sizeText.'</div>
-
         <div class="right">
-          <a class="delete-btn"
-             href="'.$deleteLink.'"
-             onclick="return confirm(\'Delete this file?\')">
-             Delete
-          </a>
+          <a class="delete-btn" href="'.$deleteLink.'" onclick="return confirm(\'Delete this file?\')">Delete</a>
         </div>
       </div>';
     }
@@ -189,8 +198,8 @@ if (!is_dir($uploadDir)) {
 }
 ?>
 
-</section>
-</main>
+    </section>
+  </main>
 </div>
 
 <script>
