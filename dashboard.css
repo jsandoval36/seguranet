@@ -161,7 +161,7 @@ body {
 
 .row {
   display: grid;
-  grid-template-columns: 1.8fr 1fr 0.7fr 0.8fr;
+  grid-template-columns: 2fr 1fr 120px 120px;
   align-items: center;
   gap: 14px;
   padding: 12px 14px;
