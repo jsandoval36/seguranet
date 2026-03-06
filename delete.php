@@ -11,11 +11,10 @@ if (!isset($_GET["file"]) || empty($_GET["file"])) {
 }
 
 $file = basename($_GET["file"]);
-
 $uploadDir = __DIR__ . "/uploads/";
 $oldPath = $uploadDir . $file;
 
-if (!file_exists($oldPath) || !is_file($oldPath)) {
+if (!is_file($oldPath)) {
   header("Location: dashboard.php");
   exit();
 }
@@ -33,8 +32,10 @@ if (file_exists($newPath)) {
   $newPath = $uploadDir . $newName;
 }
 
-rename($oldPath, $newPath);
-
-header("Location: dashboard.php?filter=deleted");
-exit();
-
+if (rename($oldPath, $newPath)) {
+  header("Location: dashboard.php?filter=deleted");
+  exit();
+} else {
+  header("Location: dashboard.php");
+  exit();
+}
