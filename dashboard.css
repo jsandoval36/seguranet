@@ -180,6 +180,7 @@ height:auto;
 .badge.deleted{ background: rgba(255,80,80,.18); }
 
 /*----Delete button*/
+
 .delete-btn,
 .recover-btn{
   display:inline-block;
