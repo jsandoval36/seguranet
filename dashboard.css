@@ -87,13 +87,30 @@ body {
 
 .sidebar-footer { margin-top: auto; padding: 10px; }
 
-.logout {
-  display: inline-block;
-  color: rgba(255,255,255,.75);
-  text-decoration: none;
+.logout{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  padding:10px 14px;
+  border-radius:10px;
+
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+
+  transition:.2s;
 }
 
-.logout:hover { text-decoration: underline; }
+.logout:hover{
+  background:#ff5a5a;
+  border-color:#ff5a5a;
+  transform:translateY(-1px);
+}
 
 /* Main */
 .main {
