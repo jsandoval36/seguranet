@@ -45,7 +45,6 @@ function isDocExt($ext) {
 
 <div class="app">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="brand">
       <div class="mark">
@@ -71,9 +70,7 @@ function isDocExt($ext) {
     </div>
   </aside>
 
-  <!-- MAIN -->
   <main class="main">
-
     <header class="topbar">
       <div class="search">
         <input id="searchBox" type="text" placeholder="Search files...">
@@ -136,6 +133,8 @@ if (!is_dir($uploadDir)) {
       if (stripos($file, "shared_") !== 0) continue;
     } elseif ($filter === "deleted") {
       if (stripos($file, "deleted_") !== 0) continue;
+    } else {
+      if (stripos($file, "deleted_") === 0) continue;
     }
 
     $filteredFiles[] = $file;
@@ -177,7 +176,14 @@ if (!is_dir($uploadDir)) {
 
       $safeFile = htmlspecialchars($file);
       $viewLink = "view.php?file=" . urlencode($file);
-      $deleteLink = "delete.php?file=" . urlencode($file);
+
+      if ($filter === "deleted") {
+        $recoverLink = "recover.php?file=" . urlencode($file);
+        $actionButton = '<a class="recover-btn" href="'.$recoverLink.'" onclick="return confirm(\'Recover this file?\')">↩ Recover</a>';
+      } else {
+        $deleteLink = "delete.php?file=" . urlencode($file);
+        $actionButton = '<a class="delete-btn" href="'.$deleteLink.'" onclick="return confirm(\'Move file to deleted?\')">🗑 Delete</a>';
+      }
 
       echo '
       <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($file)).'">
@@ -189,9 +195,7 @@ if (!is_dir($uploadDir)) {
 
         <div>'.$date.'</div>
         <div class="right">'.$sizeText.'</div>
-        <div class="right">
-          <a class="delete-btn" href="'.$deleteLink.'" onclick="return confirm(\'Delete this file?\')">Delete</a>
-        </div>
+        <div class="right">'.$actionButton.'</div>
       </div>';
     }
   }
