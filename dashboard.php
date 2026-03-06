@@ -66,7 +66,9 @@ function isDocExt($ext) {
     </nav>
 
     <div class="sidebar-footer">
-      <a class="logout" href="logout.php">Log out</a>
+      <a class="logout" href="logout.php">
+  🚪 Log out
+     </a>
     </div>
   </aside>
 
