@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
        $maxSize = 256 * 1024 * 1024;
 
       if ($file["size"] > $maxSize) {
-        $errorMessage = "File too large. Max is 2GB.";
+        $errorMessage = "File too large. Max is 256GB.";
       } else {
         $originalName = basename($file["name"]);
         $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
