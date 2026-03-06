@@ -40,9 +40,7 @@ function isVideoExt($ext) {
 
 <div class="app">
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
-
   <div class="brand">
     <div class="mark">
       <img src="seguranet-icon-small.png" alt="SeguraNet" style="width:24px;height:24px;object-fit:contain;display:block;">
@@ -64,15 +62,11 @@ function isVideoExt($ext) {
   <div class="sidebar-footer">
     <a class="logout" href="logout.php">Log out</a>
   </div>
-
 </aside>
 
-
-<!-- MAIN CONTENT -->
 <main class="main">
 
 <header class="topbar">
-
   <div class="search">
     <input id="searchBox" type="text" placeholder="Search files...">
   </div>
@@ -81,9 +75,7 @@ function isVideoExt($ext) {
     <button class="btn" onclick="window.location.href='upload.html'">Upload</button>
     <button class="btn ghost">New folder</button>
   </div>
-
 </header>
-
 
 <div class="title-row">
   <h1><?= htmlspecialchars(pageTitle($filter)) ?></h1>
@@ -92,18 +84,14 @@ function isVideoExt($ext) {
   </div>
 </div>
 
-
 <section class="table">
-
   <div class="row head">
     <div>Name</div>
     <div>Last modified</div>
     <div class="right">Size</div>
   </div>
 
-
 <?php
-
 $uploadDir = __DIR__ . "/uploads";
 
 if (!is_dir($uploadDir)) {
@@ -122,7 +110,6 @@ if (!is_dir($uploadDir)) {
   $filteredFiles = [];
 
   foreach ($files as $file) {
-
     $path = $uploadDir . "/" . $file;
 
     if (!is_file($path)) continue;
@@ -131,12 +118,10 @@ if (!is_dir($uploadDir)) {
 
     if ($filter === "photos") {
       if (!isPhotoExt($ext)) continue;
-    }
-    elseif ($filter === "shared") {
-      if (stripos($file,"shared_") !== 0) continue;
-    }
-    elseif ($filter === "deleted") {
-      if (stripos($file,"deleted_") !== 0) continue;
+    } elseif ($filter === "shared") {
+      if (stripos($file, "shared_") !== 0) continue;
+    } elseif ($filter === "deleted") {
+      if (stripos($file, "deleted_") !== 0) continue;
     }
 
     $filteredFiles[] = $file;
@@ -153,37 +138,34 @@ if (!is_dir($uploadDir)) {
   } else {
 
     foreach ($filteredFiles as $file) {
-
       $path = $uploadDir . "/" . $file;
-
       $date = date("m/d/Y", filemtime($path));
-
       $bytes = filesize($path);
 
-      if ($bytes >= 1024*1024) {
-        $sizeText = round($bytes/(1024*1024),2)." MB";
+      if ($bytes >= 1024 * 1024) {
+        $sizeText = round($bytes / (1024 * 1024), 2) . " MB";
       } else {
-        $sizeText = round($bytes/1024,2)." KB";
+        $sizeText = round($bytes / 1024, 2) . " KB";
       }
 
       $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
       $icon = "📄";
-      if (isPhotoExt($ext)) $icon="🖼️";
-      if (isVideoExt($ext)) $icon="🎞️";
-      if ($ext==="pdf") $icon="📄";
-      if (in_array($ext,["zip","rar","7z"])) $icon="🗜️";
+      if (isPhotoExt($ext)) $icon = "🖼️";
+      if (isVideoExt($ext)) $icon = "🎞️";
+      if ($ext === "pdf") $icon = "📄";
+      if (in_array($ext, ["zip", "rar", "7z"])) $icon = "🗜️";
 
       $badge = "";
-      if (stripos($file,"shared_")===0) $badge='<span class="badge shared">Shared</span>';
-      if (stripos($file,"deleted_")===0) $badge='<span class="badge deleted">Deleted</span>';
+      if (stripos($file, "shared_") === 0) $badge = '<span class="badge shared">Shared</span>';
+      if (stripos($file, "deleted_") === 0) $badge = '<span class="badge deleted">Deleted</span>';
 
       $safeFile = htmlspecialchars($file);
       $viewLink = "view.php?file=" . urlencode($file);
+      $deleteLink = "delete.php?file=" . urlencode($file);
 
       echo '
       <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($file)).'">
-
         <div class="namecell">
           <a href="'.$viewLink.'" style="color:inherit;text-decoration:none;">
             '.$icon.' '.$safeFile.'
@@ -194,30 +176,22 @@ if (!is_dir($uploadDir)) {
         <div>'.$date.'</div>
         <div class="right">'.$sizeText.'</div>
 
-
-
-
-
         <div class="right">
-        <a class="delete-btn"
-        href="delete.php?file=<?= urlencode($file) ?>"
-        onclick="return confirm('Delete this file?')">
-        Delete
-        </a>
+          <a class="delete-btn"
+             href="'.$deleteLink.'"
+             onclick="return confirm(\'Delete this file?\')">
+             Delete
+          </a>
         </div>
       </div>';
     }
   }
 }
-
 ?>
 
 </section>
-
 </main>
-
 </div>
-
 
 <script>
 const searchBox = document.getElementById("searchBox");
