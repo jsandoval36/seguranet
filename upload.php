@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($file["error"] !== UPLOAD_ERR_OK) {
       $errorMessage = "Upload error code: " . $file["error"];
     } else {
-      $maxSize = 2 * 1024 * 1024 * 1024;
+       $maxSize = 256 * 1024 * 1024;
 
       if ($file["size"] > $maxSize) {
         $errorMessage = "File too large. Max is 2GB.";
