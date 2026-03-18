@@ -4,9 +4,14 @@ $user = getenv("DB_USER");
 $pass = getenv("DB_PASS");
 $db   = getenv("DB_NAME");
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Database connection failed: " . $conn->connect_error);
+try {
+    // This is the specific connection string format for Azure SQL (Microsoft)
+    $conn = new PDO("sqlsrv:server = tcp:$host,1433; Database = $db", $user, $pass);
+    
+    // Tell PDO to throw an exception if it encounters an error
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+} catch(PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
 }
 ?>
