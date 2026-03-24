@@ -5,8 +5,10 @@ if (!isset($_SESSION["user_id"])) {
   exit();
 }
 
-$filter = $_GET["filter"] ?? "all";
 $userId = $_SESSION["user_id"];
+$filter = $_GET["filter"] ?? "all";
+$currentFolder = $_GET["folder"] ?? "";
+$currentFolder = trim($currentFolder, "/");
 
 function active($name, $filter) {
   return ($name === $filter) ? "active" : "";
@@ -32,6 +34,29 @@ function isVideoExt($ext) {
 function isDocExt($ext) {
   return in_array($ext, ["pdf","doc","docx","txt","ppt","pptx","xls","xlsx","csv"]);
 }
+
+$baseUserDir = __DIR__ . "/uploads/" . $userId;
+$targetDir = $baseUserDir . ($currentFolder !== "" ? "/" . $currentFolder : "");
+$targetDirReal = realpath($targetDir);
+$baseUserDirReal = realpath($baseUserDir);
+
+if (!is_dir($baseUserDir)) {
+  mkdir($baseUserDir, 0755, true);
+  $baseUserDirReal = realpath($baseUserDir);
+}
+
+if ($targetDirReal === false || strpos($targetDirReal, $baseUserDirReal) !== 0) {
+  $currentFolder = "";
+  $targetDir = $baseUserDir;
+}
+
+function buildFolderLink($folder, $filter) {
+  $url = "dashboard.php?filter=" . urlencode($filter);
+  if ($folder !== "") {
+    $url .= "&folder=" . urlencode($folder);
+  }
+  return $url;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,6 +66,76 @@ function isDocExt($ext) {
 <title>SeguraNet | Dashboard</title>
 <link href="seguraNet-icon.png" rel="icon">
 <link rel="stylesheet" href="dashboard.css">
+<style>
+.modal-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  z-index:999;
+  align-items:center;
+  justify-content:center;
+}
+.modal{
+  background:#111827;
+  color:white;
+  width:400px;
+  max-width:90%;
+  border-radius:16px;
+  padding:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+.modal h3{
+  margin:0 0 14px 0;
+}
+.modal input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #374151;
+  background:#0b1220;
+  color:white;
+  margin-bottom:16px;
+}
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+.modal-actions button{
+  border:none;
+  border-radius:10px;
+  padding:10px 16px;
+  cursor:pointer;
+}
+.modal-actions .cancel-btn{
+  background:#374151;
+  color:white;
+}
+.modal-actions .create-btn{
+  background:#2563eb;
+  color:white;
+}
+.breadcrumb{
+  margin:10px 0 18px 0;
+  color:#cbd5e1;
+  font-size:14px;
+}
+.breadcrumb a{
+  color:#60a5fa;
+  text-decoration:none;
+}
+.breadcrumb a:hover{
+  text-decoration:underline;
+}
+.namecell a.folder-link{
+  color:inherit;
+  text-decoration:none;
+}
+.namecell a.folder-link:hover{
+  text-decoration:underline;
+}
+</style>
 </head>
 <body>
 
@@ -58,12 +153,12 @@ function isDocExt($ext) {
     </div>
 
     <nav class="nav">
-      <a class="<?= active('all',$filter) ?>" href="dashboard.php?filter=all">📁 All files</a>
-      <a class="<?= active('photos',$filter) ?>" href="dashboard.php?filter=photos">🖼 Photos</a>
-      <a class="<?= active('videos',$filter) ?>" href="dashboard.php?filter=videos">🎞 Videos</a>
-      <a class="<?= active('docs',$filter) ?>" href="dashboard.php?filter=docs">📄 Docs</a>
-      <a class="<?= active('shared',$filter) ?>" href="dashboard.php?filter=shared">🤝 Shared</a>
-      <a class="<?= active('deleted',$filter) ?>" href="dashboard.php?filter=deleted">🗑 Deleted</a>
+      <a class="<?= active('all',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'all') ?>">📁 All files</a>
+      <a class="<?= active('photos',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'photos') ?>">🖼 Photos</a>
+      <a class="<?= active('videos',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'videos') ?>">🎞 Videos</a>
+      <a class="<?= active('docs',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'docs') ?>">📄 Docs</a>
+      <a class="<?= active('shared',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'shared') ?>">🤝 Shared</a>
+      <a class="<?= active('deleted',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'deleted') ?>">🗑 Deleted</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -78,8 +173,8 @@ function isDocExt($ext) {
       </div>
 
       <div class="top-actions">
-        <button class="btn" onclick="window.location.href='upload.php'">Upload</button>
-        <button class="btn ghost" onclick="createFolder()">New folder</button>
+        <button class="btn" onclick="window.location.href='upload.php?folder=<?= urlencode($currentFolder) ?>'">Upload</button>
+        <button class="btn ghost" onclick="openFolderModal()">New folder</button>
       </div>
     </header>
 
@@ -88,6 +183,21 @@ function isDocExt($ext) {
       <div class="meta">
         Signed in as: <?= htmlspecialchars($_SESSION["email"] ?? "user"); ?>
       </div>
+    </div>
+
+    <div class="breadcrumb">
+      <?php
+      echo '<a href="dashboard.php?filter=' . urlencode($filter) . '">Home</a>';
+
+      if ($currentFolder !== "") {
+        $parts = explode("/", $currentFolder);
+        $pathSoFar = "";
+        foreach ($parts as $part) {
+          $pathSoFar .= ($pathSoFar === "" ? "" : "/") . $part;
+          echo ' / <a href="' . htmlspecialchars(buildFolderLink($pathSoFar, $filter)) . '">' . htmlspecialchars($part) . '</a>';
+        }
+      }
+      ?>
     </div>
 
     <section class="table">
@@ -99,23 +209,21 @@ function isDocExt($ext) {
       </div>
 
 <?php
-$uploadDir = __DIR__ . "/uploads/" . $userId;
-
-if (!is_dir($uploadDir)) {
+if (!is_dir($targetDir)) {
   echo '<div class="row">
-    <div class="namecell">No files uploaded yet</div>
+    <div class="namecell">Folder not found</div>
     <div>—</div>
     <div class="right">—</div>
     <div class="right">—</div>
   </div>';
 } else {
-  $items = array_diff(scandir($uploadDir), ['.','..','.gitkeep']);
+  $items = array_diff(scandir($targetDir), ['.','..','.gitkeep']);
   rsort($items);
 
   $filteredItems = [];
 
   foreach ($items as $item) {
-    $path = $uploadDir . "/" . $item;
+    $path = $targetDir . "/" . $item;
 
     if (is_dir($path)) {
       if ($filter === "all") {
@@ -154,13 +262,18 @@ if (!is_dir($uploadDir)) {
     </div>';
   } else {
     foreach ($filteredItems as $item) {
-      $path = $uploadDir . "/" . $item;
+      $path = $targetDir . "/" . $item;
       $date = date("m/d/Y", filemtime($path));
 
       if (is_dir($path)) {
+        $childFolder = ($currentFolder === "") ? $item : $currentFolder . "/" . $item;
+        $folderLink = buildFolderLink($childFolder, "all");
+
         echo '
         <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($item)).'">
-          <div class="namecell">📁 '.htmlspecialchars($item).'</div>
+          <div class="namecell">
+            <a class="folder-link" href="'.htmlspecialchars($folderLink).'">📁 '.htmlspecialchars($item).'</a>
+          </div>
           <div>'.$date.'</div>
           <div class="right">Folder</div>
           <div class="right">—</div>
@@ -189,13 +302,13 @@ if (!is_dir($uploadDir)) {
       if (stripos($item, "deleted_") === 0) $badge = ' <span class="badge deleted">Deleted</span>';
 
       $safeItem = htmlspecialchars($item);
-      $viewLink = "view.php?file=" . urlencode($item);
+      $viewLink = "view.php?file=" . urlencode($item) . "&folder=" . urlencode($currentFolder);
 
       if ($filter === "deleted") {
-        $recoverLink = "recover.php?file=" . urlencode($item);
+        $recoverLink = "recover.php?file=" . urlencode($item) . "&folder=" . urlencode($currentFolder);
         $actionButton = '<a class="recover-btn" href="'.$recoverLink.'" onclick="return confirm(\'Recover this file?\')">↩ Recover</a>';
       } else {
-        $deleteLink = "delete.php?file=" . urlencode($item);
+        $deleteLink = "delete.php?file=" . urlencode($item) . "&folder=" . urlencode($currentFolder);
         $actionButton = '<a class="delete-btn" href="'.$deleteLink.'" onclick="return confirm(\'Move file to deleted?\')">🗑 Delete</a>';
       }
 
@@ -219,8 +332,23 @@ if (!is_dir($uploadDir)) {
   </main>
 </div>
 
+<div class="modal-overlay" id="folderModal">
+  <div class="modal">
+    <h3>Create New Folder</h3>
+    <form action="create_folder.php" method="GET">
+      <input type="hidden" name="parent" value="<?= htmlspecialchars($currentFolder) ?>">
+      <input type="text" name="foldername" placeholder="Enter folder name" required>
+      <div class="modal-actions">
+        <button type="button" class="cancel-btn" onclick="closeFolderModal()">Cancel</button>
+        <button type="submit" class="create-btn">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 const searchBox = document.getElementById("searchBox");
+const folderModal = document.getElementById("folderModal");
 
 if (searchBox) {
   searchBox.addEventListener("input", () => {
@@ -232,12 +360,12 @@ if (searchBox) {
   });
 }
 
-function createFolder() {
-  const folderName = prompt("Enter folder name:");
+function openFolderModal() {
+  folderModal.style.display = "flex";
+}
 
-  if (!folderName) return;
-
-  window.location.href = "create_folder.php?folder=" + encodeURIComponent(folderName);
+function closeFolderModal() {
+  folderModal.style.display = "none";
 }
 </script>
 
