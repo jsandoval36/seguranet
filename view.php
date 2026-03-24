@@ -1,123 +1,100 @@
 <?php
 session_start();
-
 if (!isset($_SESSION["user_id"])) {
-  header("Location: index.html");
-  exit();
+    header("Location: login.html");
+    exit();
 }
-
-$uploadDir = __DIR__ . "/uploads/";
 
 if (!isset($_GET["file"]) || $_GET["file"] === "") {
-  exit("No file specified.");
+    die("File not found.");
 }
 
+$userId = $_SESSION["user_id"];
 $file = basename($_GET["file"]);
-$path = $uploadDir . $file;
+$path = __DIR__ . "/uploads/" . $userId . "/" . $file;
 
-if (!file_exists($path)) {
-  exit("File not found.");
+if (!is_file($path)) {
+    die("File not found.");
 }
 
-$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-$fileUrl = "uploads/" . rawurlencode($file);
-?>
+$ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+$mime = mime_content_type($path);
 
+$isImage = in_array($ext, ["jpg", "jpeg", "png", "gif", "webp"]);
+$isVideo = in_array($ext, ["mp4", "mov", "avi", "mkv", "webm"]);
+$isPdf = ($ext === "pdf");
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>View File</title>
-
-<style>
-
-body{
-  margin:0;
-  background:#0b0d10;
-  color:white;
-  font-family:Segoe UI, sans-serif;
-  text-align:center;
-}
-
-.topbar{
-  background:#111;
-  padding:12px;
-}
-
-.topbar a{
-  color:white;
-  text-decoration:none;
-  margin:0 10px;
-  font-weight:600;
-}
-
-.viewer{
-  padding:20px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height: calc(100vh - 60px);
-}
-
-img, video{
-  width:auto;
-  height:auto;
-  max-width:92vw;
-  max-height:82vh;
-  border-radius:10px;
-  display:block;
-  margin:auto;
-}
-
-iframe{
-  width:92vw;
-  height:82vh;
-  border:none;
-  border-radius:10px;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View File</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background: #f5f7fb;
+            text-align: center;
+        }
+        .topbar {
+            margin-bottom: 20px;
+        }
+        .back {
+            text-decoration: none;
+            color: #1f4ed8;
+            font-weight: bold;
+        }
+        .viewer {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+        img, video, iframe {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+        iframe {
+            width: 100%;
+            height: 80vh;
+            border: none;
+        }
+        .download {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 16px;
+            background: #2563eb;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="topbar">
+        <a class="back" href="dashboard.php">⬅ Back to Dashboard</a>
+    </div>
 
-<div class="topbar">
-  <a href="dashboard.php">⬅ Back to Dashboard</a>
-  |
-  <a href="<?php echo $fileUrl; ?>" download>⬇ Download</a>
-</div>
+    <div class="viewer">
+        <h2><?php echo htmlspecialchars($file); ?></h2>
 
-<div class="viewer">
-
-<?php
-
-if (in_array($ext, ["jpg","jpeg","png","gif","webp"])) {
-
-  echo "<img src='$fileUrl'>";
-
-}
-
-elseif (in_array($ext, ["mp4","mov","webm","mkv","avi"])) {
-
-  echo "<video controls src='$fileUrl'></video>";
-
-}
-
-elseif ($ext === "pdf") {
-
-  echo "<iframe src='$fileUrl'></iframe>";
-
-}
-
-else {
-
-  echo "<p>Preview not available for this file type.</p>";
-
-}
-
-?>
-
-</div>
-
+        <?php if ($isImage): ?>
+            <img src="<?php echo "uploads/" . rawurlencode($userId) . "/" . rawurlencode($file); ?>" alt="Image">
+        <?php elseif ($isVideo): ?>
+            <video controls>
+                <source src="<?php echo "uploads/" . rawurlencode($userId) . "/" . rawurlencode($file); ?>" type="<?php echo htmlspecialchars($mime); ?>">
+                Your browser does not support video playback.
+            </video>
+        <?php elseif ($isPdf): ?>
+            <iframe src="<?php echo "uploads/" . rawurlencode($userId) . "/" . rawurlencode($file); ?>"></iframe>
+        <?php else: ?>
+            <p>This file type cannot be previewed here.</p>
+            <a class="download" href="download.php?file=<?php echo urlencode($file); ?>">Download File</a>
+        <?php endif; ?>
+    </div>
 </body>
 </html>
