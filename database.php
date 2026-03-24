@@ -6,7 +6,7 @@ $db   = getenv("DB_NAME");
 
 try {
     $conn = new PDO(
-        "sqlsrv:Server=tcp:$host,1433;Database=$db",
+        "sqlsrv:Server=tcp:seguranet.database.windows.net,1433;Database=seguranetDB",
         $user,
         $pass
     );
