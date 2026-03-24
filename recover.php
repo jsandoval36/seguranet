@@ -1,47 +1,36 @@
 <?php
 session_start();
 if (!isset($_SESSION["user_id"])) {
-  header("Location: index.html");
-  exit();
+    header("Location: login.html");
+    exit();
 }
 
-if (!isset($_GET["file"]) || empty($_GET["file"])) {
-  header("Location: dashboard.php?filter=deleted");
-  exit();
+if (!isset($_GET["file"]) || $_GET["file"] === "") {
+    die("File not found.");
 }
 
+$userId = $_SESSION["user_id"];
 $file = basename($_GET["file"]);
-$uploadDir = __DIR__ . "/uploads/";
-$oldPath = $uploadDir . $file;
+
+$userDir = __DIR__ . "/uploads/" . $userId . "/";
+$oldPath = $userDir . $file;
 
 if (!is_file($oldPath)) {
-  header("Location: dashboard.php?filter=deleted&error=notfound");
-  exit();
+    die("File not found.");
 }
 
 if (stripos($file, "deleted_") !== 0) {
-  header("Location: dashboard.php?filter=deleted");
-  exit();
+    header("Location: dashboard.php");
+    exit();
 }
 
-$restoredName = preg_replace('/^deleted_(\d+_)?/', '', $file);
-
-if (!$restoredName) {
-  header("Location: dashboard.php?filter=deleted");
-  exit();
-}
-
-$newPath = $uploadDir . $restoredName;
-
-if (file_exists($newPath)) {
-  $restoredName = time() . "_" . $restoredName;
-  $newPath = $uploadDir . $restoredName;
-}
+$restoredName = substr($file, 8);
+$newPath = $userDir . $restoredName;
 
 if (rename($oldPath, $newPath)) {
-  header("Location: dashboard.php");
-  exit();
+    header("Location: dashboard.php?filter=deleted");
+    exit();
 } else {
-  header("Location: dashboard.php?filter=deleted&error=recoverfailed");
-  exit();
+    die("Could not recover file.");
 }
+?>
