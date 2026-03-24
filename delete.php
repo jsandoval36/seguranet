@@ -1,46 +1,48 @@
 <?php
 session_start();
+
 if (!isset($_SESSION["user_id"])) {
-    header("Location: login.html");
+    header("Location: index.html");
     exit();
 }
 
-if (!isset($_GET["file"]) || $_GET["file"] === "") {
+$userId = (int)$_SESSION["user_id"];
+$file = trim($_GET["file"] ?? "");
+$file = str_replace("\\", "/", $file);
+$file = trim($file, "/");
+
+$baseDir = __DIR__ . "/uploads/" . $userId . "/";
+$baseReal = realpath($baseDir);
+
+if ($baseReal === false || $file === "") {
+    header("Location: dashboard.php");
+    exit();
+}
+
+$targetPath = realpath($baseReal . "/" . $file);
+
+if ($targetPath === false || strpos($targetPath, $baseReal) !== 0) {
     die("File not found.");
 }
 
-$userId = $_SESSION["user_id"];
-$currentFolder = $_GET["folder"] ?? "";
-$currentFolder = trim($currentFolder, "/");
-$file = basename($_GET["file"]);
-
-$baseUserDir = __DIR__ . "/uploads/" . $userId;
-$userDir = $baseUserDir . ($currentFolder !== "" ? "/" . $currentFolder : "");
-$oldPath = $userDir . "/" . $file;
-
-if (!is_file($oldPath)) {
-    die("File not found.");
-}
-
-if (stripos($file, "deleted_") === 0) {
-    $redirect = "dashboard.php?filter=deleted";
-    if ($currentFolder !== "") {
-        $redirect .= "&folder=" . urlencode($currentFolder);
+function deleteRecursively($path) {
+    if (is_dir($path)) {
+        $items = array_diff(scandir($path), array(".", ".."));
+        foreach ($items as $item) {
+            deleteRecursively($path . "/" . $item);
+        }
+        return rmdir($path);
     }
-    header("Location: " . $redirect);
-    exit();
+    return unlink($path);
 }
 
-$newPath = $userDir . "/deleted_" . $file;
+deleteRecursively($targetPath);
 
-if (rename($oldPath, $newPath)) {
-    $redirect = "dashboard.php";
-    if ($currentFolder !== "") {
-        $redirect .= "?folder=" . urlencode($currentFolder);
-    }
-    header("Location: " . $redirect);
-    exit();
-} else {
-    die("Could not delete file.");
+$parentFolder = dirname($file);
+if ($parentFolder === "." || $parentFolder === "/") {
+    $parentFolder = "";
 }
+
+header("Location: dashboard.php" . ($parentFolder !== "" ? "?folder=" . urlencode($parentFolder) : ""));
+exit();
 ?>
