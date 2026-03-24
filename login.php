@@ -1,16 +1,15 @@
 <?php
 session_start();
-try {
-        $conn = new PDO("sqlsrv:server = tcp:seguranet.database.windows.net,1433; Database = seguranetDB", "ApplicationUser", "Apple123!");
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        }
-
+        
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $email = $_POST['email'];
     $password = $_POST['password'];
 
     try {
+        $conn = new PDO("sqlsrv:server = tcp:seguranet.database.windows.net,1433; Database = seguranetDB", "ApplicationUser", "Apple123!");
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         // Get user by email
         $sql = "SELECT * FROM users WHERE email = :email";
         $stmt = $conn->prepare($sql);
