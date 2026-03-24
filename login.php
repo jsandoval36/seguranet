@@ -14,7 +14,7 @@ try {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Verify hashed password
-    if ($user && password_verify($password, $user['password'])) {
+    if ($user && password_verify($password, $user['password_hash'])) {
         $_SESSION["user_id"] = $user['id'];
         $_SESSION["email"] = $user['email'];
 
