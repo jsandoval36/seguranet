@@ -5,7 +5,9 @@ if (!isset($_SESSION["user_id"])) {
   exit();
 }
 
-$uploadDir = __DIR__ . "/uploads/";
+$userId = $_SESSION["user_id"];
+$uploadDir = __DIR__ . "/uploads/" . $userId . "/";
+
 if (!is_dir($uploadDir)) {
   mkdir($uploadDir, 0755, true);
 }
@@ -22,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($file["error"] !== UPLOAD_ERR_OK) {
       $errorMessage = "Upload error code: " . $file["error"];
     } else {
-       $maxSize = 600 * 1024 * 1024;
+      $maxSize = 600 * 1024 * 1024;
 
       if ($file["size"] > $maxSize) {
         $errorMessage = "File too large. Max is 600MB.";
@@ -136,7 +138,6 @@ button{
   transition:0.3s;
 }
 button:hover{ transform:scale(1.02); }
-
 .back{
   display:inline-block;
   margin-top:16px;
@@ -145,7 +146,6 @@ button:hover{ transform:scale(1.02); }
   font-weight:600;
 }
 .back:hover{ text-decoration:underline; }
-
 .error{
   background:#ffe3e3;
   color:#b00020;
@@ -214,4 +214,4 @@ dropArea.addEventListener("drop", (e) => {
 });
 </script>
 </body>
-</html> 
+</html>
