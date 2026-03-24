@@ -1,36 +1,35 @@
 <?php
 session_start();
+
 if (!isset($_SESSION["user_id"])) {
-    header("Location: login.html");
+    header("Location: index.html");
     exit();
 }
 
-if (!isset($_GET["file"]) || $_GET["file"] === "") {
+$userId = (int)$_SESSION["user_id"];
+$file = trim($_GET["file"] ?? "");
+$file = str_replace("\\", "/", $file);
+$file = trim($file, "/");
+
+$baseDir = __DIR__ . "/uploads/" . $userId . "/";
+$baseReal = realpath($baseDir);
+
+if ($baseReal === false || $file === "") {
+    die("Invalid request.");
+}
+
+$targetPath = realpath($baseReal . "/" . $file);
+
+if ($targetPath === false || strpos($targetPath, $baseReal) !== 0 || is_dir($targetPath)) {
     die("File not found.");
 }
 
-$userId = $_SESSION["user_id"];
-$currentFolder = $_GET["folder"] ?? "";
-$currentFolder = trim($currentFolder, "/");
-$file = basename($_GET["file"]);
-
-$baseUserDir = __DIR__ . "/uploads/" . $userId;
-$path = $baseUserDir . ($currentFolder !== "" ? "/" . $currentFolder : "") . "/" . $file;
-
-if (!is_file($path)) {
-    die("File not found.");
+$mime = mime_content_type($targetPath);
+$relativeUrl = "uploads/" . $userId . "/" . str_replace("%2F", "/", rawurlencode($file));
+$parentFolder = dirname($file);
+if ($parentFolder === "." || $parentFolder === "/") {
+    $parentFolder = "";
 }
-
-$ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-$mime = mime_content_type($path);
-
-$isImage = in_array($ext, ["jpg", "jpeg", "png", "gif", "webp"]);
-$isVideo = in_array($ext, ["mp4", "mov", "avi", "mkv", "webm"]);
-$isPdf = ($ext === "pdf");
-
-$fileUrl = "uploads/" . rawurlencode($userId)
-         . ($currentFolder !== "" ? "/" . str_replace("%2F", "/", rawurlencode($currentFolder)) : "")
-         . "/" . rawurlencode($file);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -40,70 +39,70 @@ $fileUrl = "uploads/" . rawurlencode($userId)
     <title>View File</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 30px;
-            background: #f5f7fb;
-            text-align: center;
+            font-family: Arial, sans-serif;
+            background: #050b16;
+            color: white;
         }
-        .topbar { margin-bottom: 20px; }
-        .back {
-            text-decoration: none;
-            color: #1f4ed8;
-            font-weight: bold;
+        .topbar {
+            background: #0b1220;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .viewer {
-            max-width: 1100px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 14px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        }
-        img, video, iframe {
-            max-width: 100%;
-            border-radius: 10px;
-        }
-        iframe {
-            width: 100%;
-            height: 80vh;
-            border: none;
-        }
-        .download {
-            display: inline-block;
-            margin-top: 16px;
-            padding: 10px 16px;
+        .btn {
             background: #2563eb;
             color: white;
-            border-radius: 8px;
             text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 10px;
             font-weight: bold;
+        }
+        .container {
+            padding: 30px;
+            text-align: center;
+        }
+        img, video, iframe {
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 12px;
+            background: white;
+        }
+        .text-box {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: left;
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
     </style>
 </head>
 <body>
     <div class="topbar">
-        <a class="back" href="dashboard.php<?= $currentFolder !== '' ? '?folder=' . urlencode($currentFolder) : '' ?>">⬅ Back to Dashboard</a>
+        <div><?= htmlspecialchars(basename($file)) ?></div>
+        <a class="btn" href="dashboard.php<?= $parentFolder !== '' ? '?folder=' . urlencode($parentFolder) : '' ?>">Back to Dashboard</a>
     </div>
 
-    <div class="viewer">
-        <h2><?php echo htmlspecialchars($file); ?></h2>
-
-        <?php if ($isImage): ?>
-            <img src="<?php echo $fileUrl; ?>" alt="Image">
-        <?php elseif ($isVideo): ?>
+    <div class="container">
+        <?php if (strpos($mime, "image/") === 0): ?>
+            <img src="<?= htmlspecialchars($relativeUrl) ?>" alt="Image Preview">
+        <?php elseif (strpos($mime, "video/") === 0): ?>
             <video controls>
-                <source src="<?php echo $fileUrl; ?>" type="<?php echo htmlspecialchars($mime); ?>">
+                <source src="<?= htmlspecialchars($relativeUrl) ?>" type="<?= htmlspecialchars($mime) ?>">
                 Your browser does not support video playback.
             </video>
-        <?php elseif ($isPdf): ?>
-            <iframe src="<?php echo $fileUrl; ?>"></iframe>
+        <?php elseif ($mime === "application/pdf"): ?>
+            <iframe src="<?= htmlspecialchars($relativeUrl) ?>" width="100%" height="800"></iframe>
+        <?php elseif (strpos($mime, "text/") === 0): ?>
+            <div class="text-box"><?= htmlspecialchars(file_get_contents($targetPath)) ?></div>
         <?php else: ?>
-            <p>This file type cannot be previewed here.</p>
+            <p>Preview not available for this file type.</p>
+            <p><a class="btn" href="download.php?file=<?= urlencode($file) ?>">Download File</a></p>
         <?php endif; ?>
-
-        <br>
-        <a class="download" href="download.php?file=<?php echo urlencode($file); ?>&folder=<?php echo urlencode($currentFolder); ?>">⬇ Download File</a>
     </div>
 </body>
 </html>
