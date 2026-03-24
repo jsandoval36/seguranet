@@ -47,7 +47,7 @@ $isPdf = ($ext === "pdf");
             font-weight: bold;
         }
         .viewer {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             background: white;
             padding: 20px;
@@ -71,6 +71,7 @@ $isPdf = ($ext === "pdf");
             color: white;
             border-radius: 8px;
             text-decoration: none;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -93,8 +94,10 @@ $isPdf = ($ext === "pdf");
             <iframe src="<?php echo "uploads/" . rawurlencode($userId) . "/" . rawurlencode($file); ?>"></iframe>
         <?php else: ?>
             <p>This file type cannot be previewed here.</p>
-            <a class="download" href="download.php?file=<?php echo urlencode($file); ?>">Download File</a>
         <?php endif; ?>
+
+        <br>
+        <a class="download" href="download.php?file=<?php echo urlencode($file); ?>">⬇ Download File</a>
     </div>
 </body>
 </html>
