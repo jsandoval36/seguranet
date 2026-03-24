@@ -10,8 +10,12 @@ if (!isset($_GET["file"]) || $_GET["file"] === "") {
 }
 
 $userId = $_SESSION["user_id"];
+$currentFolder = $_GET["folder"] ?? "";
+$currentFolder = trim($currentFolder, "/");
 $file = basename($_GET["file"]);
-$path = __DIR__ . "/uploads/" . $userId . "/" . $file;
+
+$baseUserDir = __DIR__ . "/uploads/" . $userId;
+$path = $baseUserDir . ($currentFolder !== "" ? "/" . $currentFolder : "") . "/" . $file;
 
 if (!is_file($path)) {
     die("File not found.");
@@ -23,6 +27,10 @@ $mime = mime_content_type($path);
 $isImage = in_array($ext, ["jpg", "jpeg", "png", "gif", "webp"]);
 $isVideo = in_array($ext, ["mp4", "mov", "avi", "mkv", "webm"]);
 $isPdf = ($ext === "pdf");
+
+$fileUrl = "uploads/" . rawurlencode($userId)
+         . ($currentFolder !== "" ? "/" . str_replace("%2F", "/", rawurlencode($currentFolder)) : "")
+         . "/" . rawurlencode($file);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,9 +46,7 @@ $isPdf = ($ext === "pdf");
             background: #f5f7fb;
             text-align: center;
         }
-        .topbar {
-            margin-bottom: 20px;
-        }
+        .topbar { margin-bottom: 20px; }
         .back {
             text-decoration: none;
             color: #1f4ed8;
@@ -77,27 +83,27 @@ $isPdf = ($ext === "pdf");
 </head>
 <body>
     <div class="topbar">
-        <a class="back" href="dashboard.php">⬅ Back to Dashboard</a>
+        <a class="back" href="dashboard.php<?= $currentFolder !== '' ? '?folder=' . urlencode($currentFolder) : '' ?>">⬅ Back to Dashboard</a>
     </div>
 
     <div class="viewer">
         <h2><?php echo htmlspecialchars($file); ?></h2>
 
         <?php if ($isImage): ?>
-            <img src="<?php echo "uploads/" . rawurlencode($userId) . "/" . rawurlencode($file); ?>" alt="Image">
+            <img src="<?php echo $fileUrl; ?>" alt="Image">
         <?php elseif ($isVideo): ?>
             <video controls>
-                <source src="<?php echo "uploads/" . rawurlencode($userId) . "/" . rawurlencode($file); ?>" type="<?php echo htmlspecialchars($mime); ?>">
+                <source src="<?php echo $fileUrl; ?>" type="<?php echo htmlspecialchars($mime); ?>">
                 Your browser does not support video playback.
             </video>
         <?php elseif ($isPdf): ?>
-            <iframe src="<?php echo "uploads/" . rawurlencode($userId) . "/" . rawurlencode($file); ?>"></iframe>
+            <iframe src="<?php echo $fileUrl; ?>"></iframe>
         <?php else: ?>
             <p>This file type cannot be previewed here.</p>
         <?php endif; ?>
 
         <br>
-        <a class="download" href="download.php?file=<?php echo urlencode($file); ?>">⬇ Download File</a>
+        <a class="download" href="download.php?file=<?php echo urlencode($file); ?>&folder=<?php echo urlencode($currentFolder); ?>">⬇ Download File</a>
     </div>
 </body>
 </html>
