@@ -6,6 +6,7 @@ if (!isset($_SESSION["user_id"])) {
 }
 
 $filter = $_GET["filter"] ?? "all";
+$userId = $_SESSION["user_id"];
 
 function active($name, $filter) {
   return ($name === $filter) ? "active" : "";
@@ -66,9 +67,7 @@ function isDocExt($ext) {
     </nav>
 
     <div class="sidebar-footer">
-      <a class="logout" href="logout.php">
-  🚪 Log out
-     </a>
+      <a class="logout" href="logout.php">🚪 Log out</a>
     </div>
   </aside>
 
@@ -100,12 +99,12 @@ function isDocExt($ext) {
       </div>
 
 <?php
-$uploadDir = __DIR__ . "/uploads";
+$uploadDir = __DIR__ . "/uploads/" . $userId;
 
 if (!is_dir($uploadDir)) {
 
   echo '<div class="row">
-    <div class="namecell">⚠ uploads folder not found</div>
+    <div class="namecell">No files uploaded yet</div>
     <div>—</div>
     <div class="right">—</div>
     <div class="right">—</div>
