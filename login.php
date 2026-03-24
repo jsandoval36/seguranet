@@ -1,6 +1,9 @@
 <?php
 session_start();
-require 'database.php';
+try {
+        $conn = new PDO("sqlsrv:server = tcp:seguranet.database.windows.net,1433; Database = seguranetDB", "ApplicationUser", "Apple123!");
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
