@@ -1,44 +1,29 @@
 <?php
 session_start();
-        
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+$email = $_POST["email"] ?? "";
+$password = $_POST["password"] ?? "";
 
-    try {
-        $conn = new PDO("sqlsrv:server = tcp:seguranet.database.windows.net,1433; Database = seguranetDB", "ApplicationUser", "Apple123!");
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+try {
+   $conn = new PDO("sqlsrv:server = tcp:seguranet.database.windows.net,1433; Database = seguranetDB", "ApplicationUser", "Apple123!");
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Fetch user by email
+    $stmt = $conn->prepare("SELECT id, email, password FROM users WHERE email = :email");
+    $stmt->execute(['email' => $email]);
 
-        // Get user by email
-        $sql = "SELECT * FROM users WHERE email = :email";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([':email' => $email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Verify hashed password
+    if ($user && password_verify($password, $user['password'])) {
+        $_SESSION["user_id"] = $user['id'];
+        $_SESSION["email"] = $user['email'];
 
-        if ($user) {
-
-            // 🔐 If using hashed passwords (recommended)
-            if (password_verify($password, $user['password'])) {
-
-                // Store session
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['email'] = $user['email'];
-
-                header("Location: dashboard.php");
-                exit();
-
-            } else {
-                echo "Invalid password.";
-            }
-
-        } else {
-            echo "User not found.";
-        }
-
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
+        header("Location: dashboard.php");
+        exit();
+    } else {
+        echo "Invalid login. <a href='index.html'>Try again</a>";
     }
+
+} catch (PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
 }
-?>
