@@ -1,373 +1,346 @@
 <?php
 session_start();
+
 if (!isset($_SESSION["user_id"])) {
-  header("Location: login.html");
-  exit();
+    header("Location: index.html");
+    exit();
 }
 
-$userId = $_SESSION["user_id"];
-$filter = $_GET["filter"] ?? "all";
-$currentFolder = $_GET["folder"] ?? "";
+$userId = (int)$_SESSION["user_id"];
+$userEmail = $_SESSION["email"] ?? "User";
+
+$baseDir = __DIR__ . "/uploads/" . $userId . "/";
+if (!is_dir($baseDir)) {
+    mkdir($baseDir, 0755, true);
+}
+
+$currentFolder = trim($_GET["folder"] ?? "");
+$currentFolder = str_replace("\\", "/", $currentFolder);
 $currentFolder = trim($currentFolder, "/");
 
-function active($name, $filter) {
-  return ($name === $filter) ? "active" : "";
+$baseReal = realpath($baseDir);
+$targetDir = $baseReal;
+
+if ($currentFolder !== "") {
+    $candidate = realpath($baseReal . "/" . $currentFolder);
+    if ($candidate !== false && strpos($candidate, $baseReal) === 0 && is_dir($candidate)) {
+        $targetDir = $candidate;
+    } else {
+        $currentFolder = "";
+        $targetDir = $baseReal;
+    }
 }
 
-function pageTitle($filter) {
-  if ($filter === "photos") return "Photos";
-  if ($filter === "videos") return "Videos";
-  if ($filter === "docs") return "Documents";
-  if ($filter === "shared") return "Shared";
-  if ($filter === "deleted") return "Deleted";
-  return "All files";
+$items = array_diff(scandir($targetDir), array(".", ".."));
+
+function formatSize($bytes) {
+    if ($bytes >= 1073741824) return number_format($bytes / 1073741824, 2) . " GB";
+    if ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . " MB";
+    if ($bytes >= 1024) return number_format($bytes / 1024, 2) . " KB";
+    return $bytes . " B";
 }
 
-function isPhotoExt($ext) {
-  return in_array($ext, ["jpg","jpeg","png","gif","webp"]);
+function joinFolderPath($folder, $item) {
+    return trim($folder . "/" . $item, "/");
 }
 
-function isVideoExt($ext) {
-  return in_array($ext, ["mp4","mov","avi","mkv","webm"]);
-}
-
-function isDocExt($ext) {
-  return in_array($ext, ["pdf","doc","docx","txt","ppt","pptx","xls","xlsx","csv"]);
-}
-
-$baseUserDir = __DIR__ . "/uploads/" . $userId;
-$targetDir = $baseUserDir . ($currentFolder !== "" ? "/" . $currentFolder : "");
-$targetDirReal = realpath($targetDir);
-$baseUserDirReal = realpath($baseUserDir);
-
-if (!is_dir($baseUserDir)) {
-  mkdir($baseUserDir, 0755, true);
-  $baseUserDirReal = realpath($baseUserDir);
-}
-
-if ($targetDirReal === false || strpos($targetDirReal, $baseUserDirReal) !== 0) {
-  $currentFolder = "";
-  $targetDir = $baseUserDir;
-}
-
-function buildFolderLink($folder, $filter) {
-  $url = "dashboard.php?filter=" . urlencode($filter);
-  if ($folder !== "") {
-    $url .= "&folder=" . urlencode($folder);
-  }
-  return $url;
+$breadcrumbs = [];
+if ($currentFolder !== "") {
+    $parts = explode("/", $currentFolder);
+    $build = "";
+    foreach ($parts as $part) {
+        $build = trim($build . "/" . $part, "/");
+        $breadcrumbs[] = [
+            "name" => $part,
+            "path" => $build
+        ];
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SeguraNet | Dashboard</title>
-<link href="seguraNet-icon.png" rel="icon">
-<link rel="stylesheet" href="dashboard.css">
-<style>
-.modal-overlay{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.45);
-  z-index:999;
-  align-items:center;
-  justify-content:center;
-}
-.modal{
-  background:#111827;
-  color:white;
-  width:400px;
-  max-width:90%;
-  border-radius:16px;
-  padding:24px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.35);
-}
-.modal h3{
-  margin:0 0 14px 0;
-}
-.modal input{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #374151;
-  background:#0b1220;
-  color:white;
-  margin-bottom:16px;
-}
-.modal-actions{
-  display:flex;
-  justify-content:flex-end;
-  gap:10px;
-}
-.modal-actions button{
-  border:none;
-  border-radius:10px;
-  padding:10px 16px;
-  cursor:pointer;
-}
-.modal-actions .cancel-btn{
-  background:#374151;
-  color:white;
-}
-.modal-actions .create-btn{
-  background:#2563eb;
-  color:white;
-}
-.breadcrumb{
-  margin:10px 0 18px 0;
-  color:#cbd5e1;
-  font-size:14px;
-}
-.breadcrumb a{
-  color:#60a5fa;
-  text-decoration:none;
-}
-.breadcrumb a:hover{
-  text-decoration:underline;
-}
-.namecell a.folder-link{
-  color:inherit;
-  text-decoration:none;
-}
-.namecell a.folder-link:hover{
-  text-decoration:underline;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeguraNet | Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #050b16;
+            color: #fff;
+        }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 260px;
+            background: #0b1220;
+            padding: 20px;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .brand {
+            background: #111827;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .brand small {
+            display: block;
+            font-weight: normal;
+            opacity: .8;
+            margin-top: 4px;
+        }
+        .nav a {
+            display: block;
+            color: #d1d5db;
+            text-decoration: none;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .nav a.active,
+        .nav a:hover {
+            background: #102647;
+            color: #fff;
+        }
+        .main {
+            flex: 1;
+            padding: 26px;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .search {
+            flex: 1;
+        }
+        .search input {
+            width: 100%;
+            max-width: 540px;
+            background: #08101d;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: white;
+            padding: 14px 18px;
+            border-radius: 14px;
+            outline: none;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-upload {
+            background: linear-gradient(90deg, #37c8ff, #5cf2c5);
+            color: #fff;
+        }
+        .btn-folder {
+            background: #1f2937;
+        }
+        .user {
+            font-size: 15px;
+            color: #d1d5db;
+            margin-bottom: 18px;
+            text-align: right;
+        }
+        h1 {
+            margin-bottom: 8px;
+        }
+        .crumbs {
+            margin-bottom: 20px;
+            color: #93c5fd;
+        }
+        .crumbs a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        .card {
+            background: #0a101a;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 18px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        th {
+            background: #151c28;
+        }
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        .file-link {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .file-link:hover {
+            text-decoration: underline;
+        }
+        .folder-link {
+            color: #facc15;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .folder-link:hover {
+            text-decoration: underline;
+        }
+        .delete-btn {
+            background: #ff5b5b;
+            color: white;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .download-btn {
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .empty {
+            padding: 24px;
+            color: #9ca3af;
+        }
+        .upload-form {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-
-<div class="app">
-
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="mark">
-        <img src="seguranet-icon-small.png" alt="SeguraNet" style="width:24px;height:24px;object-fit:contain;display:block;">
-      </div>
-      <div>
-        <div class="name">SeguraNet</div>
-        <div class="sub">Secure files</div>
-      </div>
-    </div>
-
-    <nav class="nav">
-      <a class="<?= active('all',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'all') ?>">📁 All files</a>
-      <a class="<?= active('photos',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'photos') ?>">🖼 Photos</a>
-      <a class="<?= active('videos',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'videos') ?>">🎞 Videos</a>
-      <a class="<?= active('docs',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'docs') ?>">📄 Docs</a>
-      <a class="<?= active('shared',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'shared') ?>">🤝 Shared</a>
-      <a class="<?= active('deleted',$filter) ?>" href="<?= buildFolderLink($currentFolder, 'deleted') ?>">🗑 Deleted</a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <a class="logout" href="logout.php">🚪 Log out</a>
-    </div>
-  </aside>
-
-  <main class="main">
-    <header class="topbar">
-      <div class="search">
-        <input id="searchBox" type="text" placeholder="Search files...">
-      </div>
-
-      <div class="top-actions">
-        <button class="btn" onclick="window.location.href='upload.php?folder=<?= urlencode($currentFolder) ?>'">Upload</button>
-        <button class="btn ghost" onclick="openFolderModal()">New folder</button>
-      </div>
-    </header>
-
-    <div class="title-row">
-      <h1><?= htmlspecialchars(pageTitle($filter)) ?></h1>
-      <div class="meta">
-        Signed in as: <?= htmlspecialchars($_SESSION["email"] ?? "user"); ?>
-      </div>
-    </div>
-
-    <div class="breadcrumb">
-      <?php
-      echo '<a href="dashboard.php?filter=' . urlencode($filter) . '">Home</a>';
-
-      if ($currentFolder !== "") {
-        $parts = explode("/", $currentFolder);
-        $pathSoFar = "";
-        foreach ($parts as $part) {
-          $pathSoFar .= ($pathSoFar === "" ? "" : "/") . $part;
-          echo ' / <a href="' . htmlspecialchars(buildFolderLink($pathSoFar, $filter)) . '">' . htmlspecialchars($part) . '</a>';
-        }
-      }
-      ?>
-    </div>
-
-    <section class="table">
-      <div class="row head">
-        <div>Name</div>
-        <div>Last modified</div>
-        <div class="right">Size</div>
-        <div class="right">Action</div>
-      </div>
-
-<?php
-if (!is_dir($targetDir)) {
-  echo '<div class="row">
-    <div class="namecell">Folder not found</div>
-    <div>—</div>
-    <div class="right">—</div>
-    <div class="right">—</div>
-  </div>';
-} else {
-  $items = array_diff(scandir($targetDir), ['.','..','.gitkeep']);
-  rsort($items);
-
-  $filteredItems = [];
-
-  foreach ($items as $item) {
-    $path = $targetDir . "/" . $item;
-
-    if (is_dir($path)) {
-      if ($filter === "all") {
-        $filteredItems[] = $item;
-      }
-      continue;
-    }
-
-    if (!is_file($path)) continue;
-
-    $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
-
-    if ($filter === "photos") {
-      if (!isPhotoExt($ext)) continue;
-    } elseif ($filter === "videos") {
-      if (!isVideoExt($ext)) continue;
-    } elseif ($filter === "docs") {
-      if (!isDocExt($ext)) continue;
-    } elseif ($filter === "shared") {
-      if (stripos($item, "shared_") !== 0) continue;
-    } elseif ($filter === "deleted") {
-      if (stripos($item, "deleted_") !== 0) continue;
-    } else {
-      if (stripos($item, "deleted_") === 0) continue;
-    }
-
-    $filteredItems[] = $item;
-  }
-
-  if (count($filteredItems) === 0) {
-    echo '<div class="row">
-      <div class="namecell">No files or folders found</div>
-      <div>—</div>
-      <div class="right">—</div>
-      <div class="right">—</div>
-    </div>';
-  } else {
-    foreach ($filteredItems as $item) {
-      $path = $targetDir . "/" . $item;
-      $date = date("m/d/Y", filemtime($path));
-
-      if (is_dir($path)) {
-        $childFolder = ($currentFolder === "") ? $item : $currentFolder . "/" . $item;
-        $folderLink = buildFolderLink($childFolder, "all");
-
-        echo '
-        <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($item)).'">
-          <div class="namecell">
-            <a class="folder-link" href="'.htmlspecialchars($folderLink).'">📁 '.htmlspecialchars($item).'</a>
-          </div>
-          <div>'.$date.'</div>
-          <div class="right">Folder</div>
-          <div class="right">—</div>
-        </div>';
-        continue;
-      }
-
-      $bytes = filesize($path);
-
-      if ($bytes >= 1024 * 1024) {
-        $sizeText = round($bytes / (1024 * 1024), 2) . " MB";
-      } else {
-        $sizeText = round($bytes / 1024, 2) . " KB";
-      }
-
-      $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
-
-      $icon = "📄";
-      if (isPhotoExt($ext)) $icon = "🖼️";
-      if (isVideoExt($ext)) $icon = "🎞️";
-      if ($ext === "pdf") $icon = "📕";
-      if (in_array($ext, ["zip","rar","7z"])) $icon = "🗜️";
-
-      $badge = "";
-      if (stripos($item, "shared_") === 0) $badge = ' <span class="badge shared">Shared</span>';
-      if (stripos($item, "deleted_") === 0) $badge = ' <span class="badge deleted">Deleted</span>';
-
-      $safeItem = htmlspecialchars($item);
-      $viewLink = "view.php?file=" . urlencode($item) . "&folder=" . urlencode($currentFolder);
-
-      if ($filter === "deleted") {
-        $recoverLink = "recover.php?file=" . urlencode($item) . "&folder=" . urlencode($currentFolder);
-        $actionButton = '<a class="recover-btn" href="'.$recoverLink.'" onclick="return confirm(\'Recover this file?\')">↩ Recover</a>';
-      } else {
-        $deleteLink = "delete.php?file=" . urlencode($item) . "&folder=" . urlencode($currentFolder);
-        $actionButton = '<a class="delete-btn" href="'.$deleteLink.'" onclick="return confirm(\'Move file to deleted?\')">🗑 Delete</a>';
-      }
-
-      echo '
-      <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($item)).'">
-        <div class="namecell">
-          <a href="'.$viewLink.'" style="color:inherit;text-decoration:none;">
-            '.$icon.' '.$safeItem.'
-          </a>'.$badge.'
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            SeguraNet
+            <small>Secure files</small>
         </div>
-        <div>'.$date.'</div>
-        <div class="right">'.$sizeText.'</div>
-        <div class="right">'.$actionButton.'</div>
-      </div>';
-    }
-  }
-}
-?>
 
-    </section>
-  </main>
-</div>
+        <div class="nav">
+            <a href="dashboard.php" class="active">📁 All files</a>
+            <a href="#">🖼 Photos</a>
+            <a href="#">🎬 Videos</a>
+            <a href="#">📄 Docs</a>
+            <a href="#">🤝 Shared</a>
+            <a href="#">🗑 Deleted</a>
+            <a href="logout.php">🚪 Logout</a>
+        </div>
+    </aside>
 
-<div class="modal-overlay" id="folderModal">
-  <div class="modal">
-    <h3>Create New Folder</h3>
-    <form action="create_folder.php" method="GET">
-      <input type="hidden" name="parent" value="<?= htmlspecialchars($currentFolder) ?>">
-      <input type="text" name="foldername" placeholder="Enter folder name" required>
-      <div class="modal-actions">
-        <button type="button" class="cancel-btn" onclick="closeFolderModal()">Cancel</button>
-        <button type="submit" class="create-btn">Create</button>
-      </div>
-    </form>
-  </div>
+    <main class="main">
+        <div class="topbar">
+            <div class="search">
+                <input type="text" placeholder="Search files..." />
+            </div>
+
+            <div class="actions">
+                <form id="uploadForm" class="upload-form" action="upload.php" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="folder" value="<?= htmlspecialchars($currentFolder) ?>">
+                    <input type="file" name="file" id="fileInput" onchange="document.getElementById('uploadForm').submit();">
+                </form>
+
+                <button class="btn btn-upload" onclick="document.getElementById('fileInput').click()">Upload</button>
+                <button class="btn btn-folder" onclick="createFolder()">New folder</button>
+            </div>
+        </div>
+
+        <div class="user">Signed in as: <?= htmlspecialchars($userEmail) ?></div>
+
+        <h1>All files</h1>
+
+        <div class="crumbs">
+            <a href="dashboard.php">Home</a>
+            <?php foreach ($breadcrumbs as $crumb): ?>
+                / <a href="dashboard.php?folder=<?= urlencode($crumb["path"]) ?>"><?= htmlspecialchars($crumb["name"]) ?></a>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Last modified</th>
+                    <th>Size</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php if (empty($items)): ?>
+                    <tr>
+                        <td colspan="4" class="empty">This folder is empty.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($items as $item): ?>
+                        <?php
+                        $itemPath = $targetDir . "/" . $item;
+                        $relativePath = joinFolderPath($currentFolder, $item);
+                        ?>
+                        <tr>
+                            <td>
+                                <?php if (is_dir($itemPath)): ?>
+                                    <a class="folder-link" href="dashboard.php?folder=<?= urlencode($relativePath) ?>">
+                                        📁 <?= htmlspecialchars($item) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <a class="file-link" href="view.php?file=<?= urlencode($relativePath) ?>">
+                                        <?= htmlspecialchars($item) ?>
+                                    </a>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= date("m/d/Y", filemtime($itemPath)) ?></td>
+                            <td>
+                                <?= is_dir($itemPath) ? "Folder" : formatSize(filesize($itemPath)) ?>
+                            </td>
+                            <td>
+                                <?php if (!is_dir($itemPath)): ?>
+                                    <a class="download-btn" href="download.php?file=<?= urlencode($relativePath) ?>">Download</a>
+                                <?php endif; ?>
+                                <a class="delete-btn" href="delete.php?file=<?= urlencode($relativePath) ?>" onclick="return confirm('Are you sure you want to delete this item?')">Delete</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </main>
 </div>
 
 <script>
-const searchBox = document.getElementById("searchBox");
-const folderModal = document.getElementById("folderModal");
+function createFolder() {
+    let folderName = prompt("Enter folder name:");
+    if (!folderName || folderName.trim() === "") return;
 
-if (searchBox) {
-  searchBox.addEventListener("input", () => {
-    const q = searchBox.value.toLowerCase().trim();
-    document.querySelectorAll(".fileRow").forEach(row => {
-      const name = row.getAttribute("data-name") || "";
-      row.style.display = name.includes(q) ? "" : "none";
-    });
-  });
-}
-
-function openFolderModal() {
-  folderModal.style.display = "flex";
-}
-
-function closeFolderModal() {
-  folderModal.style.display = "none";
+    let currentFolder = "<?= urlencode($currentFolder) ?>";
+    window.location.href = "create_folder.php?parent=" + currentFolder + "&foldername=" + encodeURIComponent(folderName.trim());
 }
 </script>
-
 </body>
 </html>
