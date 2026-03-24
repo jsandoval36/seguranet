@@ -26,8 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         // Insert user
-        $sql = "INSERT INTO users (email, password)
-                VALUES (:email, :password)";
+        $sql = "INSERT INTO users (email, password_hash)
+                VALUES (:email, :password_hash)";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([
