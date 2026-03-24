@@ -79,7 +79,7 @@ function isDocExt($ext) {
 
       <div class="top-actions">
         <button class="btn" onclick="window.location.href='upload.php'">Upload</button>
-        <button class="btn ghost">New folder</button>
+        <button class="btn ghost" onclick="createFolder()">New folder</button>
       </div>
     </header>
 
@@ -102,27 +102,31 @@ function isDocExt($ext) {
 $uploadDir = __DIR__ . "/uploads/" . $userId;
 
 if (!is_dir($uploadDir)) {
-
   echo '<div class="row">
     <div class="namecell">No files uploaded yet</div>
     <div>—</div>
     <div class="right">—</div>
     <div class="right">—</div>
   </div>';
-
 } else {
+  $items = array_diff(scandir($uploadDir), ['.','..','.gitkeep']);
+  rsort($items);
 
-  $files = array_diff(scandir($uploadDir), ['.','..','.gitkeep']);
-  rsort($files);
+  $filteredItems = [];
 
-  $filteredFiles = [];
+  foreach ($items as $item) {
+    $path = $uploadDir . "/" . $item;
 
-  foreach ($files as $file) {
-    $path = $uploadDir . "/" . $file;
+    if (is_dir($path)) {
+      if ($filter === "all") {
+        $filteredItems[] = $item;
+      }
+      continue;
+    }
 
     if (!is_file($path)) continue;
 
-    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
 
     if ($filter === "photos") {
       if (!isPhotoExt($ext)) continue;
@@ -131,30 +135,39 @@ if (!is_dir($uploadDir)) {
     } elseif ($filter === "docs") {
       if (!isDocExt($ext)) continue;
     } elseif ($filter === "shared") {
-      if (stripos($file, "shared_") !== 0) continue;
+      if (stripos($item, "shared_") !== 0) continue;
     } elseif ($filter === "deleted") {
-      if (stripos($file, "deleted_") !== 0) continue;
+      if (stripos($item, "deleted_") !== 0) continue;
     } else {
-      if (stripos($file, "deleted_") === 0) continue;
+      if (stripos($item, "deleted_") === 0) continue;
     }
 
-    $filteredFiles[] = $file;
+    $filteredItems[] = $item;
   }
 
-  if (count($filteredFiles) === 0) {
-
+  if (count($filteredItems) === 0) {
     echo '<div class="row">
-      <div class="namecell">No files found</div>
+      <div class="namecell">No files or folders found</div>
       <div>—</div>
       <div class="right">—</div>
       <div class="right">—</div>
     </div>';
-
   } else {
-
-    foreach ($filteredFiles as $file) {
-      $path = $uploadDir . "/" . $file;
+    foreach ($filteredItems as $item) {
+      $path = $uploadDir . "/" . $item;
       $date = date("m/d/Y", filemtime($path));
+
+      if (is_dir($path)) {
+        echo '
+        <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($item)).'">
+          <div class="namecell">📁 '.htmlspecialchars($item).'</div>
+          <div>'.$date.'</div>
+          <div class="right">Folder</div>
+          <div class="right">—</div>
+        </div>';
+        continue;
+      }
+
       $bytes = filesize($path);
 
       if ($bytes >= 1024 * 1024) {
@@ -163,7 +176,7 @@ if (!is_dir($uploadDir)) {
         $sizeText = round($bytes / 1024, 2) . " KB";
       }
 
-      $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+      $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
 
       $icon = "📄";
       if (isPhotoExt($ext)) $icon = "🖼️";
@@ -172,28 +185,27 @@ if (!is_dir($uploadDir)) {
       if (in_array($ext, ["zip","rar","7z"])) $icon = "🗜️";
 
       $badge = "";
-      if (stripos($file, "shared_") === 0) $badge = ' <span class="badge shared">Shared</span>';
-      if (stripos($file, "deleted_") === 0) $badge = ' <span class="badge deleted">Deleted</span>';
+      if (stripos($item, "shared_") === 0) $badge = ' <span class="badge shared">Shared</span>';
+      if (stripos($item, "deleted_") === 0) $badge = ' <span class="badge deleted">Deleted</span>';
 
-      $safeFile = htmlspecialchars($file);
-      $viewLink = "view.php?file=" . urlencode($file);
+      $safeItem = htmlspecialchars($item);
+      $viewLink = "view.php?file=" . urlencode($item);
 
       if ($filter === "deleted") {
-        $recoverLink = "recover.php?file=" . urlencode($file);
+        $recoverLink = "recover.php?file=" . urlencode($item);
         $actionButton = '<a class="recover-btn" href="'.$recoverLink.'" onclick="return confirm(\'Recover this file?\')">↩ Recover</a>';
       } else {
-        $deleteLink = "delete.php?file=" . urlencode($file);
+        $deleteLink = "delete.php?file=" . urlencode($item);
         $actionButton = '<a class="delete-btn" href="'.$deleteLink.'" onclick="return confirm(\'Move file to deleted?\')">🗑 Delete</a>';
       }
 
       echo '
-      <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($file)).'">
+      <div class="row fileRow" data-name="'.htmlspecialchars(strtolower($item)).'">
         <div class="namecell">
           <a href="'.$viewLink.'" style="color:inherit;text-decoration:none;">
-            '.$icon.' '.$safeFile.'
+            '.$icon.' '.$safeItem.'
           </a>'.$badge.'
         </div>
-
         <div>'.$date.'</div>
         <div class="right">'.$sizeText.'</div>
         <div class="right">'.$actionButton.'</div>
@@ -218,6 +230,14 @@ if (searchBox) {
       row.style.display = name.includes(q) ? "" : "none";
     });
   });
+}
+
+function createFolder() {
+  const folderName = prompt("Enter folder name:");
+
+  if (!folderName) return;
+
+  window.location.href = "create_folder.php?folder=" + encodeURIComponent(folderName);
 }
 </script>
 
