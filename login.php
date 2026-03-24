@@ -8,7 +8,7 @@ try {
    $conn = new PDO("sqlsrv:server = tcp:seguranet.database.windows.net,1433; Database = seguranetDB", "ApplicationUser", "Apple123!");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     // Fetch user by email
-    $stmt = $conn->prepare("SELECT id, email, password FROM users WHERE email = :email");
+    $stmt = $conn->prepare("SELECT id, email, password_hash FROM users WHERE email = :email");
     $stmt->execute(['email' => $email]);
 
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
