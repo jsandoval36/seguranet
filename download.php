@@ -2,39 +2,32 @@
 session_start();
 
 if (!isset($_SESSION["user_id"])) {
-    header("Location: login.html");
+    header("Location: index.html");
     exit();
 }
 
-if (!isset($_GET["file"]) || $_GET["file"] === "") {
-    die("File not found.");
+$userId = (int)$_SESSION["user_id"];
+$file = trim($_GET["file"] ?? "");
+$file = str_replace("\\", "/", $file);
+$file = trim($file, "/");
+
+$baseDir = __DIR__ . "/uploads/" . $userId . "/";
+$baseReal = realpath($baseDir);
+
+if ($baseReal === false || $file === "") {
+    die("Invalid request.");
 }
 
-$userId = $_SESSION["user_id"];
-$currentFolder = $_GET["folder"] ?? "";
-$currentFolder = trim($currentFolder, "/");
-$file = basename($_GET["file"]);
+$targetPath = realpath($baseReal . "/" . $file);
 
-$baseUserDir = __DIR__ . "/uploads/" . $userId;
-$path = $baseUserDir . ($currentFolder !== "" ? "/" . $currentFolder : "") . "/" . $file;
-
-if (!is_file($path)) {
+if ($targetPath === false || strpos($targetPath, $baseReal) !== 0 || is_dir($targetPath)) {
     die("File not found.");
-}
-
-$mime = mime_content_type($path);
-if (!$mime) {
-    $mime = "application/octet-stream";
 }
 
 header("Content-Description: File Transfer");
-header("Content-Type: " . $mime);
-header("Content-Disposition: attachment; filename=\"" . basename($file) . "\"");
-header("Content-Length: " . filesize($path));
-header("Cache-Control: must-revalidate");
-header("Pragma: public");
-header("Expires: 0");
-
-readfile($path);
+header("Content-Type: application/octet-stream");
+header("Content-Disposition: attachment; filename=\"" . basename($targetPath) . "\"");
+header("Content-Length: " . filesize($targetPath));
+readfile($targetPath);
 exit();
 ?>
