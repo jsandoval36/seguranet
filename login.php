@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // Store session
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
+                $_SESSION['email'] = $user['email'];
 
                 header("Location: dashboard.php");
                 exit();
