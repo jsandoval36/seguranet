@@ -21,6 +21,10 @@ header("Content-Description: File Transfer");
 header("Content-Type: application/octet-stream");
 header("Content-Disposition: attachment; filename=\"" . basename($file) . "\"");
 header("Content-Length: " . filesize($path));
+header("Cache-Control: must-revalidate");
+header("Pragma: public");
+header("Expires: 0");
+
 readfile($path);
 exit();
 ?>
