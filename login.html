@@ -49,5 +49,16 @@
       </form>
     </section>
   </main>
+  <!-- CAPTCHA -->
+  <form action="verify.php" method="POST">
+  <input type="text" name="email" required>
+  
+  <div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY"></div>
+
+  <button type="submit">Submit</button>
+</form>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  
 </body>
 </html>
