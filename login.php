@@ -29,7 +29,7 @@ try {
 }
 
 // CAPTCHA
-$secretKey = "YOUR_SECRET_KEY";
+$secretKey = "6LcJnZksAAAAALXrCPLprdLCvGwNi48Qwx0-T92A";
 
 $response = $_POST['g-recaptcha-response'];
 
