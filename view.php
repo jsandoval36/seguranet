@@ -11,6 +11,12 @@ $file = trim($_GET["file"] ?? "");
 $file = str_replace("\\", "/", $file);
 $file = trim($file, "/");
 
+$view = $_GET["view"] ?? "all";
+$allowedViews = ["all", "photos", "videos", "docs"];
+if (!in_array($view, $allowedViews, true)) {
+    $view = "all";
+}
+
 $baseDir = __DIR__ . "/uploads/" . $userId . "/";
 $baseReal = realpath($baseDir);
 
@@ -27,8 +33,14 @@ if ($targetPath === false || strpos($targetPath, $baseReal) !== 0 || is_dir($tar
 $mime = mime_content_type($targetPath);
 $relativeUrl = "uploads/" . $userId . "/" . str_replace("%2F", "/", rawurlencode($file));
 $parentFolder = dirname($file);
+
 if ($parentFolder === "." || $parentFolder === "/") {
     $parentFolder = "";
+}
+
+$backUrl = "dashboard.php?view=" . urlencode($view);
+if ($parentFolder !== "") {
+    $backUrl .= "&folder=" . urlencode($parentFolder);
 }
 ?>
 <!DOCTYPE html>
@@ -84,7 +96,7 @@ if ($parentFolder === "." || $parentFolder === "/") {
 <body>
     <div class="topbar">
         <div><?= htmlspecialchars(basename($file)) ?></div>
-        <a class="btn" href="dashboard.php<?= $parentFolder !== '' ? '?folder=' . urlencode($parentFolder) : '' ?>">Back to Dashboard</a>
+        <a class="btn" href="<?= htmlspecialchars($backUrl) ?>">Back to Dashboard</a>
     </div>
 
     <div class="container">
