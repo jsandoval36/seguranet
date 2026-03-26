@@ -130,9 +130,7 @@ $downloadUrl = "download.php?file=" . urlencode($file);
     </div>
 
     <div class="container">
-        <div class="preview-actions">
-            <a class="btn btn-download" href="<?= htmlspecialchars($downloadUrl) ?>">Download</a>
-        </div>
+     
 
         <?php if (strpos($mime, "image/") === 0): ?>
             <img src="<?= htmlspecialchars($relativeUrl) ?>" alt="Image Preview">
