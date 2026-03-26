@@ -27,3 +27,21 @@ try {
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
+
+// CAPTCHA
+$secretKey = "YOUR_SECRET_KEY";
+
+$response = $_POST['g-recaptcha-response'];
+
+$verify = file_get_contents(
+  "https://www.google.com/recaptcha/api/siteverify?secret=$secretKey&response=$response"
+);
+
+$responseData = json_decode($verify);
+
+if ($responseData->success) {
+    echo "CAPTCHA passed!";
+} else {
+    echo "CAPTCHA failed!";
+}
+?>
