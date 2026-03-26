@@ -32,8 +32,8 @@ if ($targetPath === false || strpos($targetPath, $baseReal) !== 0 || is_dir($tar
 
 $mime = mime_content_type($targetPath);
 $relativeUrl = "uploads/" . $userId . "/" . str_replace("%2F", "/", rawurlencode($file));
-$parentFolder = dirname($file);
 
+$parentFolder = dirname($file);
 if ($parentFolder === "." || $parentFolder === "/") {
     $parentFolder = "";
 }
@@ -42,6 +42,8 @@ $backUrl = "dashboard.php?view=" . urlencode($view);
 if ($parentFolder !== "") {
     $backUrl .= "&folder=" . urlencode($parentFolder);
 }
+
+$downloadUrl = "download.php?file=" . urlencode($file);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -56,31 +58,55 @@ if ($parentFolder !== "") {
             background: #050b16;
             color: white;
         }
+
         .topbar {
             background: #0b1220;
             padding: 18px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
+
+        .topbar-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
         .btn {
-            background: #2563eb;
             color: white;
             text-decoration: none;
             padding: 10px 16px;
             border-radius: 10px;
             font-weight: bold;
+            display: inline-block;
         }
+
+        .btn-download {
+            background: #2563eb;
+        }
+
+        .btn-back {
+            background: #2563eb;
+        }
+
         .container {
             padding: 30px;
             text-align: center;
         }
+
+        .preview-actions {
+            margin-bottom: 20px;
+        }
+
         img, video, iframe {
             max-width: 90%;
             max-height: 80vh;
             border-radius: 12px;
             background: white;
         }
+
         .text-box {
             max-width: 900px;
             margin: 0 auto;
@@ -96,10 +122,18 @@ if ($parentFolder !== "") {
 <body>
     <div class="topbar">
         <div><?= htmlspecialchars(basename($file)) ?></div>
-        <a class="btn" href="<?= htmlspecialchars($backUrl) ?>">Back to Dashboard</a>
+
+        <div class="topbar-right">
+            <a class="btn btn-download" href="<?= htmlspecialchars($downloadUrl) ?>">Download</a>
+            <a class="btn btn-back" href="<?= htmlspecialchars($backUrl) ?>">Back to Dashboard</a>
+        </div>
     </div>
 
     <div class="container">
+        <div class="preview-actions">
+            <a class="btn btn-download" href="<?= htmlspecialchars($downloadUrl) ?>">Download</a>
+        </div>
+
         <?php if (strpos($mime, "image/") === 0): ?>
             <img src="<?= htmlspecialchars($relativeUrl) ?>" alt="Image Preview">
         <?php elseif (strpos($mime, "video/") === 0): ?>
@@ -113,7 +147,7 @@ if ($parentFolder !== "") {
             <div class="text-box"><?= htmlspecialchars(file_get_contents($targetPath)) ?></div>
         <?php else: ?>
             <p>Preview not available for this file type.</p>
-            <p><a class="btn" href="download.php?file=<?= urlencode($file) ?>">Download File</a></p>
+            <p><a class="btn btn-download" href="<?= htmlspecialchars($downloadUrl) ?>">Download File</a></p>
         <?php endif; ?>
     </div>
 </body>
